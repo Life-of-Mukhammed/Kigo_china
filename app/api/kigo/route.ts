@@ -441,13 +441,12 @@ async function handlePOST(request: Request) {
       const old = await find(id);
       const athleteId = "athlete:" + u.id;
       const a = await find(athleteId);
-      await writeRecords([
-        statement(id, "profile", u.id, "", {
+      await writeRecords([statement(id, "profile", u.id, "", {
           ...old,
           ...p,
           updatedAt: new Date().toISOString(),
-        }),
-        statement(athleteId, "athlete", u.id, "", {
+        })]);
+      await writeRecords([statement(athleteId, "athlete", u.id, "", {
           ...a,
           name: p.name,
           city: p.city,
@@ -457,8 +456,7 @@ async function handlePOST(request: Request) {
           userId: u.id,
           slug: a?.slug || slugify(p.name) + "-" + u.id.slice(-8),
           updatedAt: new Date().toISOString(),
-        }),
-      ]);
+        })]);
       return json(p);
     }
     if (action === "bookmark" || action === "follow") {
