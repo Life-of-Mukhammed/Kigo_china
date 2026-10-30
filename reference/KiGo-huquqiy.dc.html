@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>KiGo · Huquqiy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F5F8FB}
+*{box-sizing:border-box}
+a{color:#12A86B}a:hover{color:#0B8A57}
+img{display:block;max-width:100%}
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+.k-hd{position:relative;z-index:5}
+.k-hd .in{display:flex;align-items:center;gap:28px;min-height:76px}
+.k-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#FFFFFF;flex:none}
+.k-logo b{font-size:28px;font-weight:800;letter-spacing:-.03em}
+.k-nav{display:flex;gap:30px;flex:1 1 auto}
+.k-nav a{color:#E6EDF5;text-decoration:none;font-size:15px;font-weight:600;min-height:44px;display:flex;align-items:center;position:relative}
+.k-nav a:hover{color:#3BEAA6}
+.k-nav a.on{color:#3BEAA6}
+.k-nav a.on::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:2px;border-radius:2px;background:#3BEAA6}
+.k-act{display:flex;align-items:center;gap:10px;flex:none}
+.icb{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:#FFFFFF;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.icb:hover{background:rgba(255,255,255,.16)}
+.pillb{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.04);color:#FFFFFF;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.pillb:hover{border-color:#3BEAA6;color:#FFFFFF}
+.gbtn{min-height:48px;padding:0 24px;border-radius:999px;border:0;background:#2EE59D;color:#05271A;font:inherit;font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none;white-space:nowrap;box-shadow:0 8px 24px rgba(46,229,157,.28)}
+.gbtn:hover{background:#5BF0B5;color:#05271A}
+.gbtn.sq{border-radius:12px}
+.wbtn{min-height:44px;padding:0 20px;border-radius:999px;border:0;background:#FFFFFF;color:#0F1724;font:inherit;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.wbtn:hover{background:#E9FFF5;color:#0F1724}
+.obtn{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid #D7DEE6;background:#FFFFFF;color:#0F1724;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.obtn:hover{border-color:#12A86B;color:#0F1724}
+.burger{display:none}
+.sec{padding:40px 0 0}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}
+.sh h2{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em;color:#0F1724}
+.sh p{margin:4px 0 0;color:#6B7385;font-size:14px}
+.more{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#0F1724;text-decoration:none;min-height:44px;white-space:nowrap}
+.more:hover{color:#12A86B}
+.card{background:#FFFFFF;border:1px solid #E6EBF0;border-radius:18px;box-shadow:0 6px 24px rgba(15,23,36,.05)}
+.tag{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.mut{color:#6B7385}
+.ink{color:#0F1724}
+.arr{width:40px;height:40px;border-radius:50%;border:1px solid #E1E7EE;background:#FFFFFF;color:#0F1724;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(15,23,36,.08);flex:none}
+.arr:hover{border-color:#12A86B}
+.dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.4)}
+.dot.on{width:22px;border-radius:5px;background:#3BEAA6}
+.dotb{min-width:28px;min-height:28px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.k-ft{background:#071A2C;color:#C9D4E0;margin-top:56px}
+.k-ft .in{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.4fr;gap:32px;padding:44px 0 28px}
+.k-ft h3{margin:0 0 12px;font-size:14px;color:#FFFFFF}
+.k-ft ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.k-ft ul a{color:#C9D4E0;text-decoration:none;font-size:14px;min-height:30px;display:flex;align-items:center}
+.k-ft ul a:hover{color:#3BEAA6}
+.soc{width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#FFFFFF}
+.soc:hover{border-color:#3BEAA6;color:#3BEAA6}
+.store{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.3);color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:700}
+.store small{display:block;font-size:10px;font-weight:500;color:#C9D4E0}
+.store:hover{border-color:#3BEAA6;color:#FFFFFF}
+.hs{scrollbar-width:none}.hs::-webkit-scrollbar{display:none}
+@media (max-width:1080px){
+ .k-nav{display:none}
+ .burger{display:flex}
+ .hide-md{display:none !important}
+}
+@media (max-width:640px){
+ .wrap{padding:0 16px}
+ .k-hd .in{gap:10px;min-height:64px}
+ .k-logo b{font-size:24px}
+ .hide-sm{display:none !important}
+ .sh h2{font-size:22px}
+ .k-ft .in{grid-template-columns:1fr 1fr;gap:24px}
+ .k-ft .brand{grid-column:1 / -1}
+ .k-ft .apps{grid-column:1 / -1}
+}
+
+.inp{width:100%;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid #DDE3EA;background:#FFFFFF;font:inherit;font-size:14px;color:#0F1724}
+.inp::placeholder{color:#8A93A3}
+.inp:focus{outline:2px solid #2EE59D;outline-offset:1px}
+.inp.bad{border-color:#D93A2B;background:#FFF6F5}
+.inp.good{border-color:#12B76A}
+.lbl{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#0F1724}
+.stp{width:40px;height:40px;border-radius:50%;border:1px solid #DDE3EA;background:#FFFFFF;font:inherit;font-size:20px;color:#0F1724;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.stp:hover{border-color:#12A86B}
+.opt{flex:1 1 0;display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:12px;border:1.5px solid #DDE3EA;background:#FFFFFF;font:inherit;text-align:left;cursor:pointer;min-height:64px}
+.opt.on{border-color:#12A86B;background:#ECFBF4}
+.rad{width:20px;height:20px;border-radius:50%;border:1.5px solid #B9C3CF;flex:none;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.opt.on .rad{border:0;background:#12A86B;color:#FFFFFF}
+.gfull{width:100%;min-height:52px;border-radius:12px;border:0;background:#12B76A;color:#FFFFFF;font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none}
+.gfull:hover{background:#0FA25D;color:#FFFFFF}
+.ovbg{position:absolute;inset:0;z-index:40;background:rgba(7,26,44,.55)}
+.ovp{position:absolute;z-index:41;top:84px;right:32px;width:440px;max-width:calc(100% - 24px);background:#FFFFFF;color:#0F1724;border-radius:18px;box-shadow:0 24px 60px rgba(7,26,44,.35);padding:20px;display:flex;flex-direction:column;gap:14px;text-align:left}
+.ovp.wide{left:50%;right:auto;transform:translateX(-50%);width:660px}
+.ovh{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ovh b{font-size:18px;font-weight:800}
+.xb{width:40px;height:40px;border-radius:50%;border:0;background:#F1F4F8;color:#0F1724;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;font:inherit;font-size:18px}
+.xb:hover{background:#E3E8EF}
+.li{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 12px;border-radius:12px;border:1px solid #E6EBF0;background:#FFFFFF;font:inherit;font-size:14px;color:#0F1724;text-decoration:none;cursor:pointer;text-align:left;width:100%}
+.li:hover{border-color:#12A86B;color:#0F1724}
+.li.on{border-color:#12A86B;background:#ECFBF4;font-weight:700}
+.li img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none}
+.li .end{margin-left:auto;color:#12A86B;font-weight:800}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid #DDE3EA;background:#FFFFFF;font:inherit;font-size:13px;font-weight:600;color:#0F1724;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.chip.on{background:#0F1724;border-color:#0F1724;color:#FFFFFF}
+.chip:hover{border-color:#12A86B}
+.avb{width:44px;height:44px;border-radius:50%;padding:0;border:2px solid #2EE59D;overflow:hidden;cursor:pointer;background:#FFFFFF;flex:none}
+.avb img{width:100%;height:100%;object-fit:cover}
+.toast2{position:fixed;left:50%;top:92px;transform:translateX(-50%);z-index:60;padding:12px 18px;border-radius:999px;background:#0F1724;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);white-space:nowrap}
+.gfull.off{background:#A9DCC4;cursor:not-allowed}
+.inp.code{letter-spacing:.5em;font-size:20px;font-weight:700;text-align:center}
+.inp2{width:100%;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid #DDE3EA;background:#FFFFFF;font:inherit;font-size:14px;color:#0F1724}
+textarea.inp2{min-height:96px;padding:12px 14px;resize:vertical}
+.inp2.bad{border-color:#D93A2B;background:#FFF6F5}
+.inp2.good{border-color:#12B76A}
+.err{font-size:12px;color:#D93A2B}
+.hint{font-size:12px;color:#6B7385}
+.pop{position:absolute;z-index:30;background:#FFFFFF;color:#0F1724;border:1px solid #E6EBF0;border-radius:16px;box-shadow:0 18px 44px rgba(7,26,44,.22);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:260px;text-align:left}
+.mi{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:14px;color:#0F1724;cursor:pointer;text-decoration:none;text-align:left;width:100%}
+.mi:hover{background:#F1F4F8;color:#0F1724}
+.mi.red{color:#D93A2B}
+.ok{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:10px 0}
+.ok i{width:60px;height:60px;border-radius:50%;background:#12B76A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-style:normal}
+.ihero{position:relative;background:#071A2C;color:#FFFFFF;overflow:hidden}
+.ihero .ph{position:absolute;right:0;top:0;width:55%;height:100%;object-fit:cover;opacity:.55}
+.ihero .fd{position:absolute;inset:0;background:linear-gradient(90deg,#071A2C 0%,#071A2C 40%,rgba(7,26,44,.3) 100%)}
+.ihero h1{margin:0;font-size:44px;line-height:1.08;font-weight:800;letter-spacing:-.03em}
+.crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:#C9D4E0;flex-wrap:wrap}
+.crumb a{color:#FFFFFF;text-decoration:none;font-weight:600;min-height:32px;display:flex;align-items:center}
+.box{padding:20px}
+.tabs2{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid #E6EBF0;margin-bottom:18px}
+.tb{min-height:48px;padding:0 16px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:600;color:#3A4456;cursor:pointer;white-space:nowrap;position:relative}
+.tb.on{color:#12A86B}
+.tb.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:#12A86B}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.tc{display:flex;flex-direction:column;overflow:hidden;text-decoration:none;color:#0F1724;min-width:0}
+.tc:hover{border-color:#2EE59D;color:#0F1724}
+.tc .im{position:relative;height:150px}
+.tc .im img{width:100%;height:100%;object-fit:cover}
+.tc .tg{position:absolute;left:10px;top:10px;display:flex;gap:6px}
+.tc .bd{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.tc .ln{display:flex;align-items:center;gap:8px;font-size:13px;color:#4B5565}
+.st{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.st.y{background:#FFF4DB;color:#8A5A00}.st.g{background:#DDF8EB;color:#0B7A4B}.st.r{background:#FDE7E5;color:#B42318}.st.b{background:#E5F0FF;color:#1D5BD8}.st.n{background:#EEF1F5;color:#4B5565}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;color:#6B7385;font-weight:600;padding:10px 12px;border-bottom:1px solid #E6EBF0}
+.tbl td{padding:12px;border-bottom:1px solid #EEF2F6;vertical-align:middle}
+.tbl tr:hover td{background:#F8FBFD}
+.tblw{overflow-x:auto}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 20px}
+.empty i{width:64px;height:64px;border-radius:50%;background:#EEF3F7;color:#6B7385;display:flex;align-items:center;justify-content:center;font-style:normal}
+.tgl{width:46px;height:28px;border-radius:999px;border:0;background:#C9D2DC;position:relative;cursor:pointer;flex:none;padding:0}
+.tgl::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;transition:left .15s}
+.tgl.on{background:#12B76A}
+.tgl.on::after{left:21px}
+.starb{width:40px;height:40px;border:0;background:transparent;font-size:28px;line-height:1;color:#D8DEE6;cursor:pointer;padding:0}
+.starb.on{color:#FFB020}
+.bar{height:8px;border-radius:4px;background:#EEF1F5;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;background:#FFB020;border-radius:4px}
+.acc{border:1px solid #E6EBF0;border-radius:14px;background:#FFFFFF;overflow:hidden}
+.acc button{width:100%;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;border:0;background:transparent;font:inherit;font-size:15px;font-weight:700;color:#0F1724;cursor:pointer;text-align:left}
+.acc p{margin:0;padding:0 18px 18px;font-size:14px;line-height:1.6;color:#4B5565}
+.acc.on{border-color:#12A86B}
+.steps{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stp2{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#6B7385}
+.stp2 b{width:30px;height:30px;border-radius:50%;border:2px solid #C9D2DC;display:flex;align-items:center;justify-content:center;font-size:13px;background:#FFFFFF}
+.stp2.on{color:#0F1724}.stp2.on b{border-color:#12B76A;background:#12B76A;color:#FFFFFF}
+.stp2.dn b{border-color:#12B76A;color:#12B76A}
+.sline{width:36px;height:2px;background:#DDE3EA}
+@media (max-width:1080px){
+ .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+ .ovp,.ovp.wide{left:10px;right:10px;width:auto;transform:none;top:70px}
+ .ihero h1{font-size:30px}
+ .ihero .ph{width:100%;opacity:.3}
+ .grid3,.grid4{grid-template-columns:minmax(0,1fr)}
+ .pop{left:0 !important;right:0 !important;min-width:0}
+ .toast2{top:76px}
+ .sline{width:14px}
+ .stp2 span{display:none}
+}
+
+</style>
+</helmet>
+<div style="position: relative; background: #F5F8FB; color: #0F1724; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden">
+<section class="ihero"><header class="k-hd"><div class="wrap in"><a href="KiGo-bosh.dc.html" class="k-logo" aria-label="KiGo bosh sahifa"><img src="/_blob/bca122512fa5256bed436ae228fecea1" alt="" style="width: 34px; height: 35px"><b>KiGo</b></a><nav class="k-nav" aria-label="Asosiy"><a href="KiGo-bosh.dc.html">Bosh sahifa</a><a href="KiGo-turnirlar.dc.html">Turnirlar</a><a href="KiGo-tashkilotchilar.dc.html">Tashkilotchilar</a><a href="KiGo-sportchilar.dc.html">Sportchilar</a><a href="KiGo-biz.dc.html">Biz haqimizda</a></nav><div class="k-act"><button type="button" class="icb hide-sm" aria-label="Qidirish" onClick="{{oSearch}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button><button type="button" class="pillb hide-sm" style="min-height: 40px" onClick="{{oCity}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg> {{cityName}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button><sc-if value="{{logged}}" hint-placeholder-val="{{false}}"><button type="button" class="avb hide-sm" aria-label="Profil menyusi" onClick="{{oProfile}}"><img src="/_blob/da29291349991c9bdbdbaeab11f5ae13" alt=""></button></sc-if><sc-if value="{{guest}}" hint-placeholder-val="{{true}}"><button type="button" class="pillb hide-sm" style="min-height: 40px" onClick="{{oLogin}}">Kirish</button></sc-if><a href="KiGo-yaratish.dc.html" class="gbtn" style="min-height: 42px; padding: 0 18px; font-size: 14px">Turnir o‘tkazish</a><button type="button" class="icb burger" aria-label="Menyu" onClick="{{oMenu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button></div></div></header><div class="fd"></div><div class="wrap" style="position: relative; padding-top: 8px; padding-bottom: 36px; display: flex; flex-direction: column; gap: 12px"><nav class="crumb" aria-label="Yo‘l"><a href="KiGo-bosh.dc.html">Bosh sahifa</a><span>›</span><span>Huquqiy</span></nav><h1>Huquqiy ma’lumotlar</h1><p style="margin: 0; font-size: 16px; line-height: 1.55; color: #D5DEE8; max-width: 620px">Platformadan foydalanish shartlari va shaxsiy ma’lumotlaringizni qanday himoya qilishimiz.</p></div></section><div class="wrap" style="padding-top: 22px; max-width: 900px"><div class="tabs2" role="tablist"><sc-for list="{{tabs}}" as="t" hint-placeholder-count="2"><button type="button" role="tab" class="{{t.cls}}" aria-selected="{{t.sel}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div><div class="card box" style="display: flex; flex-direction: column; gap: 18px"><span class="hint">Oxirgi yangilanish: 1-oktabr 2026</span><sc-for list="{{secs}}" as="x" hint-placeholder-count="5"><div><b style="font-size: 17px">{{x.t}}</b><p style="margin: 6px 0 0; line-height: 1.65; color: #4B5565">{{x.d}}</p></div></sc-for></div></div><footer class="k-ft"><div class="wrap"><div class="in"><div class="brand"><a href="KiGo-bosh.dc.html" class="k-logo"><img src="/_blob/bca122512fa5256bed436ae228fecea1" alt="" style="width: 30px; height: 31px"><b style="font-size: 24px">KiGo</b></a><p style="margin: 12px 0 0; font-size: 14px">Sport turnirlari. Bir platforma. Bitta hamjamiyat.</p></div><div><h3>Asosiy</h3><ul><li><a href="KiGo-bosh.dc.html">Bosh sahifa</a></li><li><a href="KiGo-turnirlar.dc.html">Turnirlar</a></li><li><a href="KiGo-tashkilotchilar.dc.html">Tashkilotchilar</a></li><li><a href="KiGo-sportchilar.dc.html">Sportchilar</a></li><li><a href="KiGo-biz.dc.html">Biz haqimizda</a></li></ul></div><div><h3>Foydali</h3><ul><li><a href="KiGo-biz.dc.html#qanday">Qanday ishlaydi?</a></li><li><a href="KiGo-biz.dc.html#savol">Savol-javob</a></li><li><a href="KiGo-huquqiy.dc.html">Foydalanuvchi shartlari</a></li><li><a href="KiGo-huquqiy.dc.html#maxfiylik">Maxfiylik siyosati</a></li></ul></div><div class="apps"><h3>Biz bilan bog'laning</h3><div style="display: flex; gap: 10px; margin-bottom: 16px"><a href="https://instagram.com/kigo.uz" target="_blank" rel="noopener" class="soc" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"></rect><circle cx="12" cy="12" r="3.6"></circle><path d="M16.8 7.2h.01"></path></svg></a><a href="https://t.me/kigo_uz" target="_blank" rel="noopener" class="soc" aria-label="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 4.5L3.5 11.2l5.3 1.9 2 6.2 3-3.6 4.9 3.6z"></path><path d="M8.8 13.1l9.4-6.6"></path></svg></a><a href="https://youtube.com/@kigo_uz" target="_blank" rel="noopener" class="soc" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"></rect><path d="M10.5 9.5v5l4.2-2.5z" fill="currentColor"></path></svg></a><a href="https://facebook.com/kigo.uz" target="_blank" rel="noopener" class="soc" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8.5h2.5V5H14a3.5 3.5 0 0 0-3.5 3.5V11H8v3.5h2.5V21H14v-6.5h2.5L17 11h-3V9a.5.5 0 0 1 .5-.5z"></path></svg></a></div><div style="display: flex; gap: 10px; flex-wrap: wrap"><a href="https://play.google.com/store" target="_blank" rel="noopener" class="store"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5l10 8.5-10 8.5z" fill="currentColor" stroke="none"></path><path d="M5 3.5l13 7-3 1.5M5 20.5l13-7-3-1.5"></path></svg><span><small>GET IT ON</small>Google Play</span></a><a href="https://apps.apple.com" target="_blank" rel="noopener" class="store"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 2.5c-1.2.1-2.6.9-3.3 1.9-.7.8-1.2 2-1 3.2 1.3.1 2.6-.7 3.4-1.7.7-.9 1.1-2.1.9-3.4z" fill="currentColor" stroke="none"></path><path d="M17.5 12.5c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.8-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 2.9-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8s1.9.8 3.2.8c1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.6 1.3-2.7 0 0-2.5-1-2.4-3.9z" fill="currentColor" stroke="none"></path></svg><span><small>Download on the</small>App Store</span></a></div></div></div><div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 18px 0 24px; border-top: 1px solid rgba(255,255,255,.1); font-size: 13px"><span>© 2025 KiGo. Barcha huquqlar himoyalangan.</span><button type="button" onClick="{{oLang}}" style="background: transparent; border: 0; color: #FFFFFF; font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer">🇺🇿 {{langName}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></div></div></footer><sc-if value="{{anyOv}}" hint-placeholder-val="{{false}}"><div class="ovbg" onClick="{{ovClose}}"></div></sc-if><sc-if value="{{isSearch}}" hint-placeholder-val="{{false}}"><div class="ovp wide" role="dialog" aria-label="Qidiruv"><div class="ovh"><b>Qidiruv</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><form role="search" onSubmit="{{searchGo}}" style="display: flex; gap: 8px"><label for="gq" style="position: absolute; left: -9999px">Qidiruv so‘zi</label><input id="gq" class="inp2" type="search" placeholder="Turnir, sport turi, tashkilotchi yoki sportchi..." value="{{q}}" onInput="{{onQ}}"><button type="submit" class="gbtn sq" style="min-height: 48px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></form><sc-if value="{{noQ}}" hint-placeholder-val="{{true}}"><span class="hint">Ommabop so‘rovlar</span><div class="chips"><sc-for list="{{popular}}" as="p" hint-placeholder-count="5"><button type="button" class="chip" onClick="{{p.go}}">{{p.label}}</button></sc-for></div><span class="hint">Yozishni boshlang — turnirlar, tashkilotchilar va sportchilar darhol chiqadi.</span></sc-if><sc-if value="{{hasRes}}" hint-placeholder-val="{{false}}"><span class="hint">{{resCount}} ta natija</span><div style="display: flex; flex-direction: column; gap: 8px"><sc-for list="{{results}}" as="r" hint-placeholder-count="3"><a href="{{r.href}}" class="li"><img src="{{r.img}}" alt=""><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><b>{{r.t}}</b><span class="hint">{{r.sub}}</span></span><span class="st n" style="margin-left: auto">{{r.kind}}</span></a></sc-for></div><a href="KiGo-turnirlar.dc.html" class="obtn" style="align-self: flex-start">Barcha turnirlarni ko‘rish <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a></sc-if><sc-if value="{{noRes}}" hint-placeholder-val="{{false}}"><div class="empty" style="padding: 16px"><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></i><b>«{{q}}» bo‘yicha hech narsa topilmadi</b><span class="hint">Boshqa so‘z bilan qidiring yoki o‘zingiz turnir tashkil qiling.</span><span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center"><button type="button" class="obtn" onClick="{{clearQ}}">Tozalash</button><a href="KiGo-yaratish.dc.html" class="gbtn" style="min-height: 44px">Turnir o‘tkazish</a></span></div></sc-if></div></sc-if><sc-if value="{{isCity}}" hint-placeholder-val="{{false}}"><div class="ovp" role="dialog" aria-label="Shahar"><div class="ovh"><b>Shaharni tanlang</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><span class="hint">Turnirlar shu shahar bo‘yicha saralanadi.</span><div style="display: flex; flex-direction: column; gap: 6px"><sc-for list="{{cities}}" as="c" hint-placeholder-count="7"><button type="button" class="{{c.cls}}" onClick="{{c.pick}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg> {{c.label}}<span class="end">{{c.mark}}</span></button></sc-for></div></div></sc-if><sc-if value="{{isLang}}" hint-placeholder-val="{{false}}"><div class="ovp" role="dialog" aria-label="Til"><div class="ovh"><b>Tilni tanlang</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><div style="display: flex; flex-direction: column; gap: 6px"><sc-for list="{{langs}}" as="l" hint-placeholder-count="3"><button type="button" class="{{l.cls}}" onClick="{{l.pick}}"><b style="width: 30px">{{l.code}}</b>{{l.label}}<span class="end">{{l.mark}}</span></button></sc-for></div></div></sc-if><sc-if value="{{isLogin}}" hint-placeholder-val="{{false}}"><div class="ovp" role="dialog" aria-label="Kirish"><sc-if value="{{lPhone}}" hint-placeholder-val="{{true}}"><div class="ovh"><b>KiGo’ga kirish</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><span class="hint">Telefon raqamingizga SMS kod yuboramiz. Ro‘yxatdan o‘tish shart emas.</span><button type="button" class="gfull" style="background: #229ED9" onClick="{{tgLogin}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 4.5L3.5 11.2l5.3 1.9 2 6.2 3-3.6 4.9 3.6z"></path><path d="M8.8 13.1l9.4-6.6"></path></svg> Telegram orqali kirish</button><span style="display: flex; align-items: center; gap: 10px" class="hint"><span style="flex: 1; height: 1px; background: #E6EBF0"></span>yoki<span style="flex: 1; height: 1px; background: #E6EBF0"></span></span><form onSubmit="{{sendCode}}" style="display: flex; flex-direction: column; gap: 10px"><label class="lbl" for="lp">Telefon raqam</label><input id="lp" class="{{lPhoneCls}}" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" onInput="{{onLPhone}}"><sc-if value="{{lPhoneErr}}" hint-placeholder-val="{{false}}"><span class="err">Raqamni to‘liq kiriting (9 ta raqam)</span></sc-if><button type="submit" class="{{phoneBtn}}">SMS kod olish</button></form><span class="hint">Davom etib, <a href="KiGo-huquqiy.dc.html">foydalanuvchi shartlari</a>ga rozilik bildirasiz.</span></sc-if><sc-if value="{{lCode}}" hint-placeholder-val="{{false}}"><div class="ovh"><button type="button" class="xb" aria-label="Orqaga" onClick="{{lBack}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><b style="flex: 1">Kodni kiriting</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><span class="hint">{{lPhoneShow}} raqamiga 4 xonali kod yubordik.</span><form onSubmit="{{verify}}" style="display: flex; flex-direction: column; gap: 10px"><label for="lc" style="position: absolute; left: -9999px">SMS kod</label><input id="lc" class="{{lCodeCls}}" type="text" inputmode="numeric" maxlength="4" placeholder="• • • •" onInput="{{onLCode}}"><sc-if value="{{lCodeErr}}" hint-placeholder-val="{{false}}"><span class="err">Kod 4 ta raqamdan iborat</span></sc-if><button type="submit" class="{{codeBtn}}">Tasdiqlash</button></form><button type="button" class="mi" style="justify-content: center" onClick="{{lResend}}">Kodni qayta yuborish (0:59)</button></sc-if><sc-if value="{{lDone}}" hint-placeholder-val="{{false}}"><div class="ok"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></i><b style="font-size: 20px">Xush kelibsiz, Javohir!</b><span class="hint">Endi turnirlarga yozilishingiz, sharh qoldirishingiz va turnir o‘tkazishingiz mumkin.</span><button type="button" class="gfull" onClick="{{lContinue}}">{{lContLabel}}</button></div></sc-if></div></sc-if><sc-if value="{{isProfile}}" hint-placeholder-val="{{false}}"><div class="ovp" role="dialog" aria-label="Profil"><div class="ovh"><span style="display: flex; align-items: center; gap: 12px"><img src="/_blob/da29291349991c9bdbdbaeab11f5ae13" alt="" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover"><span style="display: flex; flex-direction: column"><b style="font-size: 16px">Javohir Karimov</b><span class="hint">+998 90 *** 45 67</span></span></span><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><a href="KiGo-profil.dc.html" class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"></path></svg> Mening profilim</a><a href="KiGo-profil.dc.html#arizalar" class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg> Arizalarim <span class="st y" style="margin-left: auto">1 kutilmoqda</span></a><a href="KiGo-profil.dc.html#turnirlar" class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20.5h7M9.5 17h5"></path></svg> Men tashkil qilgan turnirlar</a><a href="KiGo-profil.dc.html#saqlangan" class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4M6 4.5h11l-2.5 4 2.5 4H6"></path></svg> Saqlanganlar</a><a href="KiGo-profil.dc.html#sozlamalar" class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="7.5" r="2.5"></circle><circle cx="7.5" cy="16.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle></svg> Sozlamalar</a><button type="button" class="mi red" onClick="{{logout}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg> Chiqish</button></div></sc-if><sc-if value="{{isMenu}}" hint-placeholder-val="{{false}}"><div class="ovp" role="dialog" aria-label="Menyu"><div class="ovh"><b>Menyu</b><button type="button" class="xb" aria-label="Yopish" onClick="{{ovClose}}">✕</button></div><button type="button" class="li" onClick="{{oSearch}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg> Qidirish</button><nav aria-label="Mobil menyu" style="display: flex; flex-direction: column; gap: 6px"><a href="KiGo-bosh.dc.html" class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5M6.5 9.5V19.5h11V9.5"></path></svg> Bosh sahifa</a><a href="KiGo-turnirlar.dc.html" class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20.5h7M9.5 17h5"></path></svg> Turnirlar</a><a href="KiGo-tashkilotchilar.dc.html" class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4M6 4.5h11l-2.5 4 2.5 4H6"></path></svg> Tashkilotchilar</a><a href="KiGo-sportchilar.dc.html" class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"></circle><path d="M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"></path><circle cx="17" cy="9" r="2.6"></circle><path d="M16 14.2c2.8 0 5 1.9 5 4.8"></path></svg> Sportchilar</a><a href="KiGo-biz.dc.html" class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4z"></path><path d="M8 10h8M8 13h5"></path></svg> Biz haqimizda</a></nav><sc-if value="{{guest}}" hint-placeholder-val="{{true}}"><button type="button" class="obtn" style="justify-content: center" onClick="{{oLogin}}">Kirish</button></sc-if><sc-if value="{{logged}}" hint-placeholder-val="{{false}}"><a href="KiGo-profil.dc.html" class="obtn" style="justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"></path></svg> Mening profilim</a></sc-if><a href="KiGo-yaratish.dc.html" class="gbtn" style="justify-content: center">Turnir o‘tkazish</a><span style="display: flex; gap: 8px"><button type="button" class="chip" onClick="{{oCity}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg> {{cityName}}</button><button type="button" class="chip" onClick="{{oLang}}">{{langCode}} · {{langName}}</button></span></div></sc-if><sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}"><div class="toast2" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg> {{toastMsg}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+const SEARCH = [
+  { t: 'Boku Cup 2025', sub: 'Futbol · Boku · 12–14 iyun', kind: 'Turnir', img: '/_blob/1c2f3c81324220130d4ad08e648784a4', href: 'KiGo-turnir-1.dc.html' },
+  { t: 'Baku Spring Cup 2025', sub: 'Futbol · Boku · 12–14 aprel', kind: 'Turnir', img: '/_blob/f11d63b626e36ae367852e182fe5b5f4', href: 'KiGo-turnir-2.dc.html' },
+  { t: 'Baku Padel Championship', sub: 'Padel · Boku · 5–7 iyul · Bepul', kind: 'Turnir', img: '/_blob/02ef3ff165d336757185093837aead56', href: 'KiGo-turnir-1.dc.html' },
+  { t: 'Summer Tennis Open', sub: 'Tennis · Boku · 20–22 iyun · Bepul', kind: 'Turnir', img: '/_blob/13e3e74e1c8613263887e300dceeaf73', href: 'KiGo-turnir-1.dc.html' },
+  { t: '3x3 Street Basketball', sub: 'Basketbol · Gence · 28–30 iyun', kind: 'Turnir', img: '/_blob/07b0c10fb9b2d49a2a0dcdce20f37286', href: 'KiGo-turnir-1.dc.html' },
+  { t: 'Baku Winter Cup 2024', sub: 'Futbol · Yakunlangan · G‘olib: FC Legends', kind: 'Natija', img: '/_blob/f3a224ab0b9d2085e655dc027e6c8bc0', href: 'KiGo-natija.dc.html' },
+  { t: 'Baku Sport Club', sub: 'Tashkilotchi · 4.8 ★ · 12 turnir', kind: 'Tashkilotchi', img: '/_blob/fb74437405103c7700fc75ba8dab7ebc', href: 'KiGo-tashkilotchi.dc.html' },
+  { t: 'Elite Sport', sub: 'Tashkilotchi · 4.8 ★ · Boku', kind: 'Tashkilotchi', img: '/_blob/8df855e35d09756e0cb25af457c2d554', href: 'KiGo-tashkilotchi.dc.html' },
+  { t: 'Javohir Karimov', sub: 'Futbol · FC Legends · 1 840 ochko', kind: 'Sportchi', img: '/_blob/da29291349991c9bdbdbaeab11f5ae13', href: 'KiGo-sportchi.dc.html' },
+  { t: 'Leyla Mammadova', sub: 'Tennis · Boku · 1 620 ochko', kind: 'Sportchi', img: '/_blob/85654160865fd850f802010e4003f15f', href: 'KiGo-sportchi.dc.html' }
+];
+const CITIES = ['Toshkent', 'Samarqand', 'Buxoro', 'Andijon', 'Farg‘ona', 'Namangan', 'Boku'];
+const SEC = {"sh": [{"t": "1. Umumiy qoidalar", "d": "KiGo (ООО «INVENTUM») sport turnirlarini e’lon qilish va ularga yozilish uchun platforma. Ro‘yxatdan o‘tib, siz ushbu shartlarga rozilik bildirasiz."}, {"t": "2. Turnirga yozilish", "d": "Arizani tashkilotchi tasdiqlaydi. Pullik turnirda to‘lov tashkilotchi rad etsa 3 ish kunida qaytariladi."}, {"t": "3. Tashkilotchi majburiyatlari", "d": "Tashkilotchi turnir ma’lumotlarining to‘g‘riligi, xavfsizlik va mukofotlarni berish uchun javobgar."}, {"t": "4. Sharhlar", "d": "Faqat turnirda qatnashganlar sharh qoldira oladi. Haqoratli sharhlar o‘chiriladi."}, {"t": "5. To‘lovlar", "d": "Turnir e’loni — 20 000 so‘m. To‘lovlar Click, Payme, Uzcard orqali qabul qilinadi."}], "mx": [{"t": "1. Qanday ma’lumot yig‘amiz", "d": "Ism, telefon raqam, Telegram ID va turnir tarixingiz."}, {"t": "2. Nima uchun", "d": "Turnirga yozilish, tashkilotchi bilan bog‘lanish va reytingni hisoblash uchun."}, {"t": "3. Kim ko‘radi", "d": "Telefoningizni faqat siz yozilgan turnir tashkilotchisi ko‘radi. Uchinchi shaxslarga sotilmaydi."}, {"t": "4. O‘chirish", "d": "Profil → Sozlamalar → «Hisobni o‘chirish» orqali barcha ma’lumotlaringiz 30 kunda o‘chiriladi."}]};
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  componentDidMount() {
+    this.ovInit();
+    if (this.onMount) this.onMount();
+  }
+  ovInit() {
+    try { const v = JSON.parse(localStorage.getItem('kigo.ux') || '{}'); this.setState(v); } catch (e) {}
+  }
+  keep(p) {
+    this.setState(p);
+    try { const v = JSON.parse(localStorage.getItem('kigo.ux') || '{}'); localStorage.setItem('kigo.ux', JSON.stringify(Object.assign(v, p))); } catch (e) {}
+  }
+  toast(t) {
+    this.setState({ toastMsg: t });
+    clearTimeout(this.tt);
+    this.tt = setTimeout(() => this.setState({ toastMsg: '' }), 2600);
+  }
+  openLogin() {
+    this.setState({ ov: 'login', lstep: 'phone', lphone: '', lcode: '', ltried: false });
+  }
+  need(fn) {
+    if (this.state.logged) fn(); else { this.after = fn; this.openLogin(); }
+  }
+  ux() {
+    const s = this.state, o = s.ov || '';
+    const close = () => { this.after = null; this.setState({ ov: '' }); };
+    const q = (s.q || '').trim().toLowerCase();
+    const res = q ? SEARCH.filter((r) => (r.t + ' ' + r.sub + ' ' + r.kind).toLowerCase().includes(q)) : [];
+    const digits = (s.lphone || '').replace(/\D/g, '');
+    const phoneOk = digits.length >= 9;
+    const codeOk = (s.lcode || '').replace(/\D/g, '').length === 4;
+    const finish = () => { this.keep({ logged: true }); this.setState({ lstep: 'done' }); };
+    const city = s.city || 'Toshkent', lang = s.lang || 'UZ';
+    const LANGS = [['UZ', 'O‘zbekcha'], ['RU', 'Русский'], ['EN', 'English']];
+    return {
+      anyOv: !!o,
+      ovClose: close,
+      oSearch: () => this.setState({ ov: 'search' }),
+      oCity: () => this.setState({ ov: 'city' }),
+      oLang: () => this.setState({ ov: 'lang' }),
+      oLogin: () => this.openLogin(),
+      oProfile: () => this.setState({ ov: 'profile' }),
+      oMenu: () => this.setState({ ov: 'menu' }),
+      isSearch: o === 'search', isCity: o === 'city', isLang: o === 'lang', isLogin: o === 'login', isProfile: o === 'profile', isMenu: o === 'menu',
+      logged: !!s.logged, guest: !s.logged,
+      cityName: city, langCode: lang, langName: (LANGS.find((l) => l[0] === lang) || LANGS[0])[1],
+      cities: CITIES.map((c) => ({ label: c, cls: city === c ? 'li on' : 'li', mark: city === c ? '✓' : '', pick: () => { this.keep({ city: c }); close(); this.toast('Shahar tanlandi: ' + c); } })),
+      langs: LANGS.map(([k, l]) => ({ label: l, code: k, cls: lang === k ? 'li on' : 'li', mark: lang === k ? '✓' : '', pick: () => { this.keep({ lang: k }); close(); this.toast('Til o‘zgardi: ' + l); } })),
+      q: s.q || '',
+      onQ: (e) => this.setState({ q: e.target.value }),
+      noQ: !q, hasRes: res.length > 0, noRes: !!q && res.length === 0, resCount: res.length, results: res.slice(0, 6),
+      popular: ['Futbol', 'Padel', 'Boku', 'Bepul', 'Tennis'].map((t) => ({ label: t, go: () => this.setState({ q: t }) })),
+      clearQ: () => this.setState({ q: '' }),
+      searchGo: (e) => { e.preventDefault(); this.setState({ ov: 'search' }); },
+      lPhone: !s.lstep || s.lstep === 'phone', lCode: s.lstep === 'code', lDone: s.lstep === 'done',
+      onLPhone: (e) => this.setState({ lphone: e.target.value }),
+      lPhoneCls: s.ltried && !phoneOk ? 'inp2 bad' : phoneOk ? 'inp2 good' : 'inp2',
+      lPhoneErr: !!s.ltried && !phoneOk,
+      phoneBtn: phoneOk ? 'gfull' : 'gfull off',
+      sendCode: (e) => { e.preventDefault(); if (phoneOk) this.setState({ lstep: 'code', lcode: '', ltried: false }); else this.setState({ ltried: true }); },
+      lPhoneShow: '+998 ' + digits.slice(-9),
+      onLCode: (e) => this.setState({ lcode: e.target.value }),
+      lCodeCls: s.ltried && !codeOk ? 'inp2 code bad' : codeOk ? 'inp2 code good' : 'inp2 code',
+      lCodeErr: !!s.ltried && !codeOk,
+      codeBtn: codeOk ? 'gfull' : 'gfull off',
+      verify: (e) => { e.preventDefault(); if (codeOk) finish(); else this.setState({ ltried: true }); },
+      tgLogin: () => finish(),
+      lBack: () => this.setState({ lstep: 'phone', ltried: false }),
+      lResend: () => this.toast('Kod qayta yuborildi'),
+      lContinue: () => { const f = this.after; this.after = null; this.setState({ ov: '' }); if (f) f(); },
+      lContLabel: this.after ? 'Davom etish' : 'Yopish',
+      logout: () => { this.keep({ logged: false }); close(); this.toast('Hisobdan chiqdingiz'); },
+      toastMsg: s.toastMsg || '', hasToast: !!s.toastMsg
+    };
+  }
+  onMount() { if ((location.hash || '').indexOf('maxfiylik') >= 0) this.setState({ t: 'mx' }); }
+  renderVals() {
+    const s = this.state;
+    const t = s.t || 'sh';
+    return {
+      ...this.ux(),
+      tabs: [['sh', 'Foydalanuvchi shartlari'], ['mx', 'Maxfiylik siyosati']].map(([k, label]) => ({ label, sel: String(t === k), cls: t === k ? 'tb on' : 'tb', pick: () => this.setState({ t: k }) })),
+      secs: SEC[t]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+import { createElement, type SVGProps } from "react";
+type Props = SVGProps<SVGSVGElement> & { size?: number };
+const paths: Record<string, string[]> = {
+  ArrowRight: ["M4 12h16", "m13 5 7 7-7 7"],
+  ArrowLeft: ["M20 12H4", "m11 5-7 7 7 7"],
+  ArrowUpRight: ["M5 19 19 5", "M5 5h14v14"],
+  ChevronRight: ["m9 5 7 7-7 7"],
+  ChevronLeft: ["m15 5-7 7 7 7"],
+  Search: ["M21 21l-5-5", "M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0"],
+  Menu: ["M4 6h16M4 12h16M4 18h16"],
+  X: ["m6 6 12 12M18 6 6 18"],
+  Plus: ["M12 4v16M4 12h16"],
+  Check: ["m4 12 5 5L20 6"],
+  Trophy: [
+    "M8 3h8v6a4 4 0 0 1-8 0V3Z",
+    "M8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M7 21h10M9 18h6",
+  ],
+  MapPin: [
+    "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z",
+    "M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0",
+  ],
+  CalendarDays: [
+    "M6 3v4M18 3v4M3 10h18",
+    "M5 5h14a2 2 0 0 1 2 2v13H3V7a2 2 0 0 1 2-2Z",
+    "M7 14h1M12 14h1M17 14h1M7 18h1M12 18h1",
+  ],
+  Users: [
+    "M10 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0",
+    "M2 21v-3a5 5 0 0 1 10 0v3M18 5a3 3 0 0 1 0 6M16 15a5 5 0 0 1 6 5",
+  ],
+  ShieldCheck: ["m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6l8-4Z", "m8 12 3 3 5-6"],
+  Star: [
+    "m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.3-5.7-3-5.7 3 1.1-6.3-4.6-4.5 6.4-.9L12 3Z",
+  ],
+  Bookmark: ["M6 3h12v19l-6-4-6 4V3Z"],
+  LogOut: ["M9 3H3v18h6M13 7l5 5-5 5M8 12h14"],
+  Settings: [
+    "M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8",
+    "M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1 1-3Z",
+  ],
+  ImageIcon: ["M3 3h18v18H3V3Z", "m3 17 6-6 4 4 3-3 5 5M8 7h.01"],
+  RefreshCw: [
+    "M20 8a8 8 0 0 0-14-3L3 8M3 3v5h5M4 16a8 8 0 0 0 14 3l3-3M21 21v-5h-5",
+  ],
+  Mail: ["M3 5h18v14H3V5Z", "m3 5 9 8 9-8"],
+  Flag: ["M5 22V3", "M5 3h14l-3 5 3 5H5"],
+  LayoutDashboard: [
+    "M3 3h7v9H3V3ZM14 3h7v5h-7V3ZM14 12h7v9h-7v-9ZM3 16h7v5H3v-5Z",
+  ],
+  Building2: [
+    "M5 21V3h14v18M2 21h20M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-3h4v3",
+  ],
+  Megaphone: ["m3 9 18-6v18L3 15V9ZM7 16l2 5h4l-2-4M3 12h-1"],
+  Handshake: [
+    "m2 10 5-5 5 1 5-1 5 5-7 10-4-1-9-9",
+    "m7 5 3 5 3-2 5 5M8 16l3 3M12 13l5 4",
+  ],
+  ClipboardList: ["M9 3h6v4H9V3Z", "M9 5H4v17h16V5h-5M8 12h8M8 17h8"],
+  History: ["M3 12a9 9 0 1 0 3-7L3 8", "M3 3v5h5M12 7v6l4 2"],
+  Download: ["M12 3v12m-5-5 5 5 5-5", "M3 16v5h18v-5"],
+  Archive: ["M3 3h18v5H3V3ZM5 8v13h14V8M9 12h6"],
+  RotateCcw: ["M3 11a9 9 0 1 1 2 7M3 3v8h8"],
+};
+function icon(name: string) {
+  return function Icon({ size = 20, children, ...props }: Props) {
+    return createElement(
+      "svg",
+      {
+        width: size,
+        height: size,
+        viewBox: "0 0 24 24",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: 1.8,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        "aria-hidden": true,
+        ...props,
+      },
+      ...paths[name].map((d, i) => createElement("path", { d, key: i })),
+      children,
+    );
+  };
+}
+export const ArrowRight = icon("ArrowRight"),
+  ArrowLeft = icon("ArrowLeft"),
+  ArrowUpRight = icon("ArrowUpRight"),
+  ChevronRight = icon("ChevronRight"),
+  ChevronLeft = icon("ChevronLeft"),
+  Search = icon("Search"),
+  Menu = icon("Menu"),
+  X = icon("X"),
+  Plus = icon("Plus"),
+  Check = icon("Check"),
+  Trophy = icon("Trophy"),
+  MapPin = icon("MapPin"),
+  CalendarDays = icon("CalendarDays"),
+  Users = icon("Users"),
+  ShieldCheck = icon("ShieldCheck"),
+  Star = icon("Star"),
+  Bookmark = icon("Bookmark"),
+  LogOut = icon("LogOut"),
+  Settings = icon("Settings"),
+  Image = icon("ImageIcon"),
+  RefreshCw = icon("RefreshCw"),
+  Mail = icon("Mail"),
+  Flag = icon("Flag"),
+  LayoutDashboard = icon("LayoutDashboard"),
+  Building2 = icon("Building2"),
+  Megaphone = icon("Megaphone"),
+  Handshake = icon("Handshake"),
+  ClipboardList = icon("ClipboardList"),
+  History = icon("History"),
+  Download = icon("Download"),
+  Archive = icon("Archive"),
+  RotateCcw = icon("RotateCcw");

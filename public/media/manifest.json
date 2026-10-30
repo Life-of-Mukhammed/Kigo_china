@@ -1,0 +1,44 @@
+[
+  {
+    "name": "hero",
+    "width": 1475,
+    "height": 1979,
+    "upscaled": false
+  },
+  {
+    "name": "football",
+    "width": 1499,
+    "height": 759,
+    "upscaled": false
+  },
+  {
+    "name": "tennis",
+    "width": 1719,
+    "height": 749,
+    "upscaled": false
+  },
+  {
+    "name": "basketball",
+    "width": 1719,
+    "height": 749,
+    "upscaled": false
+  },
+  {
+    "name": "padel",
+    "width": 1719,
+    "height": 749,
+    "upscaled": false
+  },
+  {
+    "name": "volleyball",
+    "width": 1708,
+    "height": 749,
+    "upscaled": false
+  },
+  {
+    "name": "sport",
+    "width": 1936,
+    "height": 959,
+    "upscaled": false
+  }
+]

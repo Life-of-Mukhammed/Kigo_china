@@ -1,0 +1,6 @@
+export const tokenValue=()=>{const b=crypto.getRandomValues(new Uint8Array(32));return btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+export async function digest(value:string){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('')}
+export function cookiesOf(raw:string|null){return Object.fromEntries((raw||'').split(';').map(s=>{const v=s.trim(),i=v.indexOf('=');return i<0?[v,'']:[v.slice(0,i),v.slice(i+1)]}).filter(p=>p[0]).map(([k,v])=>[k,v||'']))}
+export function safeReturnTo(raw:string|null){if(!raw||!raw.startsWith('/')||raw.startsWith('//')||raw.includes('\\'))return '/profil';try{const u=new URL(raw,'https://kigo.local');if(u.origin!=='https://kigo.local'||/^\/(?:auth|signin-with-chatgpt|signout-with-chatgpt|callback)(?:\/|$)/.test(u.pathname))return '/profil';return u.pathname+u.search+u.hash}catch{return '/profil'}}
+export function cookieName(origin:string,kind:'session'|'oauth'){return new URL(origin).protocol==='https:'?'__Host-kigo_'+kind:'kigo_'+kind+'_dev'}
+export function serializeCookie(name:string,value:string,origin:string,maxAge:number){return `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${new URL(origin).protocol==='https:'?'; Secure':''}`}
