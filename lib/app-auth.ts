@@ -5,7 +5,7 @@ import {getChatGPTUser,type ChatGPTUser} from '@/app/chatgpt-auth';
 export type AppUser=ChatGPTUser&{provider?:'google'|'chatgpt'|'password'};
 import {cookiesOf,digest,tokenValue,cookieName,serializeCookie} from "@/lib/auth-crypto";
 export {cookiesOf,digest,tokenValue,cookieName,serializeCookie,safeReturnTo} from "@/lib/auth-crypto";
-export function publicOrigin(request:Request){const configured=env.KIGO_PUBLIC_ORIGIN;if(configured)return new URL(configured).origin;const u=new URL(request.url);if(['localhost','127.0.0.1'].includes(u.hostname))return u.origin;throw new Error('Saytning doimiy manzili sozlanmagan')}
+export function publicOrigin(request:Request){const configured=env.KIGO_PUBLIC_ORIGIN;if(configured)return new URL(configured).origin;const u=new URL(request.url);if(['localhost','127.0.0.1'].includes(u.hostname)||u.protocol==='https:')return u.origin;throw new Error('Saytning doimiy manzili sozlanmagan')}
 export function googleReady(){return Boolean(env.GOOGLE_CLIENT_ID&&env.GOOGLE_CLIENT_SECRET&&env.KIGO_PUBLIC_ORIGIN)}
 export async function getAppUser():Promise<AppUser|null>{
  const h=await headers();const c=cookiesOf(h.get('cookie'));const host=h.get('host')||'';const local=/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);const token=c['__Host-kigo_session']||(local?c.kigo_session_dev:'');
