@@ -1,4 +1,4 @@
-import { MongoClient, type Collection, type ClientSession } from "mongodb";
+import type { MongoClient, Collection, ClientSession } from "mongodb";
 import { env } from "cloudflare:workers";
 
 export type StoredRecord = {
@@ -25,6 +25,7 @@ const globalMongo = globalThis as typeof globalThis & { kigoMongoClient?: Promis
 async function mongoCollection(): Promise<Collection<MongoRecord>> {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("Vercel environment variable MONGODB_URI is not configured.");
+  const { MongoClient } = await import("mongodb");
   globalMongo.kigoMongoClient ??= new MongoClient(uri, { serverSelectionTimeoutMS: 10000 }).connect();
   const client = await globalMongo.kigoMongoClient;
   const collection = client.db(process.env.MONGODB_DB || "kigo").collection<MongoRecord>("records");
@@ -42,13 +43,15 @@ function mongoDoc(record: StoredRecord): MongoRecord {
 }
 
 async function plainRow(collection: Collection<MongoRecord>, record: MongoRecord): Promise<StoredRecord | null> {
-  const { _id: _ignored, payload: _payload, ...row } = record as MongoRecord & { _id?: unknown };
+  const { id, kind, owner, target, data, created_at } = record;
+  const payload = record.payload;
+  const row: StoredRecord = { id, kind, owner, target, data, created_at };
   try {
     JSON.parse(row.data);
     return row;
   } catch {
-    if (_payload && typeof _payload === "object" && !Array.isArray(_payload)) {
-      const repaired = JSON.stringify(_payload);
+    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+      const repaired = JSON.stringify(payload);
       await collection.updateOne({ id: row.id, data: row.data }, { $set: { data: repaired } });
       console.error("Recovered invalid MongoDB record JSON:", row.id, row.kind);
       return { ...row, data: repaired };

@@ -2,6 +2,8 @@ import { env } from "cloudflare:workers";
 import { getAppUser } from "@/lib/app-auth";
 import { z } from "zod";
 import { findRecord, listRecords, recordWrite, writeRecords, type RecordWrite } from "@/lib/record-store";
+// Entity fields vary by `kind`; each write is validated with that kind's Zod schema.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Entity = Record<string, any>;
 export type Row = {
   id: string;
@@ -62,8 +64,10 @@ export async function put(
   await writeRecords([statement(id, kind, owner, target, data)]);
 }
 export function clean(e: Entity): Entity {
-  const { ownerId, kind, ...rest } = e;
-  return rest;
+  const result = { ...e };
+  delete result.ownerId;
+  delete result.kind;
+  return result;
 }
 export const isOwnerEmail = (email: string) =>
   ((env as unknown as { KIGO_ADMIN_EMAILS?: string }).KIGO_ADMIN_EMAILS || "")

@@ -1,6 +1,6 @@
 # KiGo — sport platformasi va admin panel
 
-Claude maketining navy/yashil vizual uslubi asosida ishlaydigan React/Vinext sayti. Mahsulot sahifalaridagi namunaviy turnirlar, sportchilar, tashkilotchilar, izohlar, reklama va hisoblagichlar olib tashlangan. Vercel production ma’lumotlari MongoDB’da, mahalliy/Cloudflare development esa D1’da saqlanadi. Rasm va ikonka sifatlari yangilangan; asl dizayn HTML fayllari faqat `reference/` arxivida saqlangan.
+Claude maketining navy/yashil vizual uslubi asosida ishlaydigan React/Vinext sayti. Vercel production ma’lumotlari MongoDB’da, mahalliy/Cloudflare development esa D1’da saqlanadi. Production’da ko‘rinish uchun beshtadan demo turnir, tashkilotchi va demo fikr, shuningdek bitta demo reklama avtomatik qo‘shiladi. Demo kontent nomi va matnida belgilangan; statistika va haqiqiy reytinglarga qo‘shilmaydi.
 
 ## Ishga tushirish
 
@@ -37,7 +37,7 @@ Vercel Project Settings → Environment Variables’da quyidagilarni kiriting:
 
 - `MONGODB_URI`: MongoDB Atlas connection string. Parol ichidagi maxsus belgilar URI-encode qilingan bo‘lsin; bu qiymatni GitHub yoki chatga yubormang.
 - `MONGODB_DB`: ixtiyoriy database nomi; berilmasa `kigo` ishlatiladi.
-- `R2_ENDPOINT`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; ixtiyoriy `R2_REGION` (odatda `auto`): R2 S3-compatible fayl saqlash ulanishi.
+- `R2_ENDPOINT`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; ixtiyoriy `R2_REGION` (odatda `auto`): R2 S3-compatible fayl saqlash ulanishi. R2 bo‘lmasa, fayllar va zaxiralar MongoDB `files` collection’ida saqlanadi.
 - `KIGO_ADMIN_EMAILS`, `KIGO_PUBLIC_ORIGIN`; Google login uchun `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 
 MongoDB’da yangi database va `records` collection birinchi so‘rovda yaratiladi, kerakli indekslar avtomatik qo‘shiladi. Cloudflare D1’dagi mavjud foydalanuvchi va turnir ma’lumotlari MongoDB’ga avtomatik ko‘chmaydi; kerak bo‘lsa alohida eksport/import qiling. Atlas Network Access va Database User ruxsatlari sozlangan bo‘lsin. Sozlamalarni saqlagach Redeploy qiling.
@@ -46,12 +46,12 @@ MongoDB’da yangi database va `records` collection birinchi so‘rovda yaratila
 
 ## Asosiy sahifalar
 
-- `/`: haqiqiy yaqin turnirlar, faol reklamalar, tashkilotchilar, hamkorlar va DB statistikasi.
+- `/`: e’lon qilingan turnirlar, faol reklamalar, tashkilotchilar, hamkorlar va demo yozuvlarsiz hisoblangan DB statistikasi.
 - `/turnirlar`: qidiruv, shahar/sport/narx/holat filtrlari, saralash va sahifalash.
 - `/turnirlar/:slug`: real ma’lumot, ariza, saqlash, QR, kalendar, qoidalar, ishtirokchilar, o‘yin natijalari, moderatsiyadan o‘tgan sharhlar.
 - `/turnir-yaratish`, `/tashkilotchi-yaratish`, `/jamoa-yaratish`: bazaga yoziladigan yaratish formalari.
 - `/boshqaruv/:slug`: tashkilotchi yoki admin uchun tahrirlash, arizalarni tasdiqlash/rad etish, qur’a va o‘yin hisoblari.
-- `/tashkilotchilar`, `/tashkilotchilar/:slug`: katalog, haqiqiy sharh reytingi, obuna va kabinetga xabar yuborish.
+- `/tashkilotchilar`, `/tashkilotchilar/:slug`: katalog, demo sharhlar aniq belgilangan; reytingga faqat haqiqiy sharhlar qo‘shiladi.
 - `/sportchilar`, `/sportchilar/:slug`, `/jamoalar/:slug`: real profillar, tarkib va natijadan hisoblanadigan reyting.
 - `/profil`: arizalar, o‘z turnirlari, tashkilotlari, jamoalari, saqlanganlar, kiruvchi/chiquvchi xabarlar, sharhlar va profil tahriri.
 - `/hamkorlik`, `/biz-haqimizda`: bazaga saqlanadigan murojaatlar; admin javobi foydalanuvchi kabinetiga boradi.
@@ -65,7 +65,7 @@ Yaratish/o‘qish/tahrirlash/arxivlash/tiklash, qidiruv, 30 tadan sahifalash, CS
 
 ## Haqiqiy ko‘rsatkichlar
 
-“KiGo raqamlarda” SQL orqali hisoblanadi: yakunlangan turnirlar, faol hisoblar, tashkilotchilar, e’lon qilingan sport turlari. Bo‘sh baza 0 ko‘rsatadi. Namuna raqamlar qo‘shilmaydi.
+“KiGo raqamlarda” baza orqali hisoblanadi: yakunlangan turnirlar, faol hisoblar, tashkilotchilar, e’lon qilingan sport turlari. Demo yozuvlar statistikaga qo‘shilmaydi. Bo‘sh haqiqiy baza 0 ko‘rsatadi.
 
 Reyting: faqat `finished` o‘yinlar; g‘alaba va durang ochkolari admin sozlamalaridan olinadi. Jamoa tarkibi o‘yin yaratilganda snapshot sifatida saqlanadi. Raqib profillari tanlangan o‘yinlar sportchi/jamoa reytingiga qo‘shiladi. Qo‘lda yozilgan nomlar avtomatik profil deb qabul qilinmaydi.
 
@@ -75,11 +75,11 @@ Reklama: hero/banner/sidebar joylashuvlari, boshlanish/tugash sanasi, holat va u
 
 ## Rasmlar
 
-`public/media/`: asl o‘lchamda WebP va 480/960 px variantlar. Sun’iy kattalashtirish qilinmagan. Hero asl manbasi 1475×1979; turli ekranlarda mos variant tanlanadi. Banner/muqovalarda `object-fit: cover`, logotip va profillarda mos kesim ishlatiladi. Admin R2ga JPG/PNG/WebP (10 MB gacha) yuklaydi; server MIME, fayl imzosi, hajm va autentifikatsiyani tekshiradi.
+`public/media/`: asl o‘lchamda WebP va 480/960 px variantlar. Sun’iy kattalashtirish qilinmagan. Hero asl manbasi 1475×1979; turli ekranlarda mos variant tanlanadi. Banner/muqovalarda `object-fit: cover`, logotip va profillarda mos kesim ishlatiladi. Admin R2 yoki R2 sozlanmagan Vercel’da MongoDB’ga JPG/PNG/WebP (10 MB gacha) yuklaydi; server MIME, fayl imzosi, hajm va autentifikatsiyani tekshiradi.
 
 ## Hali tashqi hisob talab qiladigan xizmatlar
 
-Hozir productionda faol login — ChatGPT; Google uchun OAuth kalitlari kutilmoqda. SMS va Telegram bot orqali tashqi xabarnomalar uchun provayder hisoblari/kalitlari berilmagan. Xabarlar ilovaning o‘z kabinetida ishlaydi.
+Vercel’da email/KiGo paroli bilan kirish ishlaydi; Google OAuth kalitlari sozlangandagina Google login yoqiladi. ChatGPT identity headerlari faqat ishonchli Sites runtime’da qabul qilinadi; ommaviy Vercel so‘rovlari bu headerlarni ishonchli deb hisoblamaydi. SMS va Telegram bot orqali tashqi xabarnomalar uchun provayder hisoblari/kalitlari berilmagan. Xabarlar ilovaning o‘z kabinetida ishlaydi.
 
 Click/Payme merchant hisoblari berilmagan: haqiqiy pul yechilmaydi va pullik arizalar `awaiting_payment` holatida qoladi. Admin to‘lovni soxta `paid` qilib belgilay olmaydi. To‘lov provayderi va imzolangan callback integratsiyasi ulanmaguncha pullik ariza tasdiqlanmaydi.
 
@@ -89,11 +89,14 @@ Click/Payme merchant hisoblari berilmagan: haqiqiy pul yechilmaydi va pullik ari
 npx tsc --noEmit
 node scripts/test-domain.mjs
 node scripts/test-auth.mjs
+node scripts/test-chatgpt-auth.mjs
+node scripts/test-mongo-files.mjs
 node scripts/test-api.mjs
+node scripts/test-demo-content.mjs
 npm run build
 ```
 
-`test-domain.mjs`: haqiqiy SQLite xotira bazasida API biznes mantiqi; test chegarasida faqat identity/Worker muhitlari almashtiriladi. Productionga yozmaydi. `test-api.mjs`: faqat localhost; header spoof, login/admin API, sahifalar, 404 va QR tekshiruvlari. Avvalgi lokal QA yozuvlari qayta tiklanadigan arxivga o‘tkaziladi. Production bazasida bu testni ishlatmang.
+`test-domain.mjs`: haqiqiy SQLite xotira bazasida API biznes mantiqi; test chegarasida faqat identity/Worker muhitlari almashtiriladi. Productionga yozmaydi. `test-auth.mjs` va `test-chatgpt-auth.mjs`: Google OAuth/session oqimlari hamda Vercel’da identity header spoof himoyasi. `test-mongo-files.mjs`: MongoDB fayl fallbackining binary/MIME/metadata saqlashini tekshiradi. `test-api.mjs`: faqat localhost; login/admin API, sahifalar, 404 va QR tekshiruvlari. `test-demo-content.mjs`: production-only seed, idempotentlik, beshtalik va bitta reklama qoidasini tekshiradi. Production bazasida `test-api.mjs`ni ishlatmang.
 
 `app/api/kigo/route.ts`: oddiy foydalanuvchi va tashkilotchi amallari. `app/api/admin/route.ts`: admin o‘qish va moderatsiya. `lib/record-store.ts`: MongoDB va mahalliy D1 adapteri. `lib/kigo-store.ts`: schema validatsiyasi, server huquqlari, umumiy baza funksiyalari va reyting. `db/schema.ts`/`drizzle/`: D1 sxemasi. `components/portal.tsx`: real frontend. `components/admin-panel.tsx`: admin UI. `components/entity-editor.tsx`: yaratish/tahrirlash formalari.
 

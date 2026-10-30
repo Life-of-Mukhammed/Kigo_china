@@ -1,5 +1,8 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
+// Entity records are validated by their kind-specific Zod schema at the API boundary.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type E = Record<string, any>;
 export async function requestApi(action: string, data: E = {}, admin = false) {
   const response = await fetch(admin ? "/api/admin" : "/api/kigo", {
@@ -279,7 +282,7 @@ export default function EntityEditor({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const isAdmin = bootstrap.user?.role === "admin";
-  const set = (k: string, value: any) => setV((s) => ({ ...s, [k]: value }));
+  const set = (k: string, value: unknown) => setV((s) => ({ ...s, [k]: value }));
   return (
     <form
       className="kp-form kp-editor"
@@ -453,7 +456,7 @@ export default function EntityEditor({
       {kind === "tournament" && !bootstrap.myOrganizers?.length && !isAdmin && (
         <p className="kp-alert">
           E’lon qilish uchun avval{" "}
-          <a href="/tashkilotchi-yaratish">tashkilotchi profilini yarating</a>.
+          <Link href="/tashkilotchi-yaratish">tashkilotchi profilini yarating</Link>.
         </p>
       )}
       {kind === "tournament" && v.price > 0 && (

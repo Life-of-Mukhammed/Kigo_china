@@ -18,7 +18,14 @@ const SIGN_IN_PATH = "/signin-with-chatgpt";
 const SIGN_OUT_PATH = "/signout-with-chatgpt";
 const CALLBACK_PATH = "/callback";
 
+export function chatGPTAuthAvailable() {
+  return !process.env.VERCEL;
+}
+
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
+  // Vercel does not supply a trusted ChatGPT identity gateway. A public HTTP
+  // client can forge these headers, so only accept them in the Sites runtime.
+  if (!chatGPTAuthAvailable()) return null;
   const requestHeaders = await headers();
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);

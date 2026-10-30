@@ -4,5 +4,5 @@ export async function serverBootstrap() {
   const response = await GET(
     new Request("https://kigo.internal/api/kigo?action=bootstrap"),
   );
-  return response.ok ? ((await response.json()) as Record<string, any>) : null;
+  return response.ok ? ((await response.json()) as Record<string, unknown>) : null;
 }

@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {admin,ApiError,decode,type Row} from '@/lib/kigo-store';
+import {admin,ApiError,decode} from '@/lib/kigo-store';
 import {listRecords} from '@/lib/record-store';
 import {backupStatus,createBackup,readSnapshot,restorePreview,restoreRecords} from '@/lib/backups';
 export const dynamic='force-dynamic';

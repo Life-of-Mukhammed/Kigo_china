@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import type { MongoClient } from "mongodb";
 
 type FileRecord = {
   _id: string;
@@ -14,6 +14,7 @@ const globalFiles = globalThis as typeof globalThis & {
 async function fileCollection() {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("MONGODB_URI is not configured.");
+  const { MongoClient } = await import("mongodb");
   globalFiles.kigoFilesClient ??= new MongoClient(uri, {
     serverSelectionTimeoutMS: 10000,
   }).connect();

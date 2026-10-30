@@ -1,4 +1,5 @@
 import AdminPanel from "@/components/admin-panel";
+import Link from "next/link";
 
 import { identity } from "@/lib/kigo-store";
 import { redirect } from "next/navigation";
@@ -11,7 +12,7 @@ export default async function Admin() {
       <main style={{ maxWidth: 600, margin: "100px auto", padding: 24 }}>
         <h1>Admin huquqi kerak</h1>
         <p>Bu sahifa faqat administratorlar uchun.</p>
-        <a href="/profil">Shaxsiy kabinetga qaytish</a>
+        <Link href="/profil">Shaxsiy kabinetga qaytish</Link>
       </main>
     );
   return <AdminPanel />;

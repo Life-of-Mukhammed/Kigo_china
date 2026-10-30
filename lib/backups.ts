@@ -53,7 +53,11 @@ export async function backupStatus() {
     last: last ? { ...JSON.parse(last.data), id: last.id } : null,
     status: statusRecord ? { ok: statusRecord.ok, at: statusRecord.at, error: statusRecord.error } : null,
     automatic: "Yozish amallaridan keyin, faoliyat bor paytda 15 daqiqada bir",
-    storage: "MongoDB + R2",
+    storage: process.env.VERCEL
+      ? process.env.R2_ENDPOINT && process.env.R2_BUCKET_NAME && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY
+        ? "MongoDB + R2"
+        : "MongoDB fayl saqlash"
+      : "D1 + R2",
     permanentDelete: false,
   };
 }

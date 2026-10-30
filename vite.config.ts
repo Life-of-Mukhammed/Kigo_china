@@ -94,7 +94,7 @@ export default defineConfig(async ({ command }) => {
       : undefined,
     plugins: [
       vinext(),
-      sites({ mockAuth: false }),
+      sites({ mockAuth: command === "serve" && !isVercel }),
       connectorPreview(),
       ...platformPlugins,
     ],

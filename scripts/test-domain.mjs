@@ -86,7 +86,7 @@ await build({
         }));
         b.onLoad({ filter: /.*/, namespace: "test-auth" }, () => ({
           contents:
-            "export async function getChatGPTUser(){return globalThis.__KIGO_TEST_USER;} export const getAppUser=getChatGPTUser;export const googleReady=()=>false;",
+            "export async function getChatGPTUser(){return globalThis.__KIGO_TEST_USER;} export const getAppUser=getChatGPTUser;export const googleReady=()=>false;export const chatGPTAuthAvailable=()=>false;",
         }));
       },
     },

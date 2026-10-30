@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
@@ -13,13 +15,10 @@ import {
   ChevronRight,
   Plus,
   ShieldCheck,
-  Star,
   Bookmark,
-  LogOut,
   Settings,
   Image as ImageIcon,
   RefreshCw,
-  Mail,
   Check,
   Flag,
   LayoutDashboard,
@@ -92,6 +91,8 @@ function SafePhoto({
   priority?: boolean;
 }) {
   const [bad, setBad] = useState(false);
+  // Reset image-error state whenever the selected asset changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setBad(false), [src]);
   return src && !bad ? (
     <img
@@ -129,7 +130,7 @@ export function Ad({ ad, className = "" }: { ad: E; className?: string }) {
     return () => obs.disconnect();
   }, [ad.id]);
   return (
-    <a
+    <Link
       ref={ref}
       className={"kp-ad " + className}
       href={ad.url}
@@ -148,7 +149,7 @@ export function Ad({ ad, className = "" }: { ad: E; className?: string }) {
           {ad.buttonLabel || "Batafsil"} <ArrowRight size={16} />
         </span>
       </div>
-    </a>
+    </Link>
   );
 }
 function Empty({
@@ -168,17 +169,17 @@ function Empty({
       <h3>{title}</h3>
       {text && <p>{text}</p>}
       {action && href && (
-        <a className="kp-btn" href={href}>
+        <Link className="kp-btn" href={href}>
           {action}
           <ArrowRight size={16} />
-        </a>
+        </Link>
       )}
     </div>
   );
 }
 export function TournamentCard({ t }: { t: E }) {
   return (
-    <a href={"/turnirlar/" + t.slug} className="kp-tour-card">
+    <Link href={"/turnirlar/" + t.slug} className="kp-tour-card">
       <div className="kp-card-image">
         <SafePhoto src={t.img} alt={t.name} />
         <div className="kp-tags">
@@ -210,7 +211,7 @@ export function TournamentCard({ t }: { t: E }) {
           </i>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 const nav = [
@@ -227,6 +228,7 @@ export default function Portal({
   path?: string;
   initialData?: E | null;
 }) {
+  const router = useRouter();
   const [d, setD] = useState<E | null>(initialData || null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -237,7 +239,7 @@ export default function Portal({
     [editor, setEditor] = useState<E | null>(null),
     [profileTab, setProfileTab] = useState("applications");
   const mounted = useRef(true);
-  async function reload() {
+  const reload = useCallback(async () => {
     const r = await fetch("/api/kigo?action=bootstrap", { cache: "no-store" });
     const b = (await r.json()) as E;
     if (!r.ok) throw new Error(b.error);
@@ -247,7 +249,7 @@ export default function Portal({
       setLoading(false);
     }
     return b;
-  }
+  }, []);
   useEffect(() => {
     mounted.current = true;
     if (!initialData)
@@ -262,7 +264,7 @@ export default function Portal({
       mounted.current = false;
       clearInterval(timer);
     };
-  }, []);
+  }, [initialData, reload]);
   useEffect(() => {
     if (!notice) return;
     const t = setTimeout(() => setNotice(""), 5000);
@@ -301,7 +303,7 @@ export default function Portal({
   const header = (
     <header className="kp-header">
       <div className="kp-container kp-header-in">
-        <a className="kp-logo" href="/" aria-label="KiGo bosh sahifa">
+        <Link className="kp-logo" href="/" aria-label="KiGo bosh sahifa">
           <img
             src="/assets/bca122512fa5256bed436ae228fecea1"
             width="32"
@@ -309,12 +311,12 @@ export default function Portal({
             alt=""
           />
           <b>{settings.name}</b>
-        </a>
+        </Link>
         <nav className="kp-nav" aria-label="Asosiy navigatsiya">
           {nav.map(([href, label]) => (
-            <a className={path === href ? "active" : ""} key={href} href={href}>
+            <Link className={path === href ? "active" : ""} key={href} href={href}>
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="kp-header-actions">
@@ -326,17 +328,17 @@ export default function Portal({
             <Search size={19} />
           </button>
           {user ? (
-            <a className="kp-profile-link" href="/profil">
+            <Link className="kp-profile-link" href="/profil">
               <Avatar name={user.name} image={user.image} size={36} />
-            </a>
+            </Link>
           ) : (
-            <a className="kp-btn outline small" href="/login">
+            <Link className="kp-btn outline small" href="/login">
               Sign in
-            </a>
+            </Link>
           )}
-          <a href="/turnir-yaratish" className="kp-btn small kp-create-link">
+          <Link href="/turnir-yaratish" className="kp-btn small kp-create-link">
             Turnir o‘tkazish
-          </a>
+          </Link>
           <button
             className="kp-icon-btn kp-burger"
             aria-label="Menyuni ochish"
@@ -350,13 +352,13 @@ export default function Portal({
       {menu && (
         <nav className="kp-mobile-nav">
           {nav.map(([href, label]) => (
-            <a href={href} key={href}>
+            <Link href={href} key={href}>
               {label}
-            </a>
+            </Link>
           ))}
-          <a href="/turnir-yaratish">Turnir yaratish</a>
-          <a href="/profil">Shaxsiy kabinet</a>
-          {user?.role === "admin" && <a href="/admin">Admin panel</a>}
+          <Link href="/turnir-yaratish">Turnir yaratish</Link>
+          <Link href="/profil">Shaxsiy kabinet</Link>
+          {user?.role === "admin" && <Link href="/admin">Admin panel</Link>}
         </nav>
       )}
     </header>
@@ -403,9 +405,9 @@ export default function Portal({
   const heading = (title: string, sub?: string) => (
     <div className="kp-page-heading">
       <div>
-        <a className="kp-breadcrumb" href="/">
+        <Link className="kp-breadcrumb" href="/">
           Bosh sahifa <ChevronRight size={13} />
-        </a>
+        </Link>
         <h1>{title}</h1>
         {sub && <p>{sub}</p>}
       </div>
@@ -471,13 +473,13 @@ export default function Portal({
                   ["Padel", "◉"],
                   ["Boshqa", "•••"],
                 ].map(([sport, icon]) => (
-                  <a
+                  <Link
                     href={"/turnirlar?sport=" + encodeURIComponent(sport)}
                     key={sport}
                   >
                     <span>{icon}</span>
                     {sport}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -495,18 +497,18 @@ export default function Portal({
                     Ishtirokchilar, arizalar, qur’a va natijalar — barchasi
                     bitta kabinetda.
                   </p>
-                  <a href="/turnir-yaratish" className="kp-btn">
+                  <Link href="/turnir-yaratish" className="kp-btn">
                     Turnir yaratish <ArrowRight size={17} />
-                  </a>
+                  </Link>
                 </div>
               )}
               <div className="kp-hero-links">
-                <a href="/turnirlar">
+                <Link href="/turnirlar">
                   Musobaqa topish <ArrowRight size={17} />
-                </a>
-                <a href="/tashkilotchilar">
+                </Link>
+                <Link href="/tashkilotchilar">
                   Sport hamjamiyati <ArrowRight size={17} />
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -517,9 +519,9 @@ export default function Portal({
               <h2>Yaqin turnirlar</h2>
               <p>Ro‘yxatdan o‘tish ochiq bo‘lgan musobaqalar</p>
             </div>
-            <a className="kp-more" href="/turnirlar">
+            <Link className="kp-more" href="/turnirlar">
               Barchasini ko‘rish <ArrowRight size={16} />
-            </a>
+            </Link>
           </div>
           {cardList(
             d.tournaments
@@ -544,7 +546,7 @@ export default function Portal({
               Sport musobaqasining barcha bosqichlari bir joyda.
             </p>
             <div className="kp-feature-grid">
-              {[
+              {([
                 [
                   Trophy,
                   "Turnir yaratish",
@@ -565,7 +567,7 @@ export default function Portal({
                   "Haqiqiy natijalar",
                   "O‘yin hisoblari asosida reyting yangilanadi.",
                 ],
-              ].map(([Icon, title, text]: any) => (
+              ] as const).map(([Icon, title, text]) => (
                 <div key={title}>
                   <i>
                     <Icon size={24} />
@@ -602,9 +604,9 @@ export default function Portal({
         <section className="kp-container kp-section">
           <div className="kp-section-title">
             <h2>Tashkilotchilar</h2>
-            <a href="/tashkilotchilar" className="kp-more">
+            <Link href="/tashkilotchilar" className="kp-more">
               Barchasi <ArrowRight size={16} />
-            </a>
+            </Link>
           </div>
           {d.organizers.length ? (
             <div className="kp-grid four">
@@ -652,7 +654,7 @@ export default function Portal({
             <h2>Hamkorlarimiz</h2>
             <div className="kp-sponsors">
               {d.sponsors.map((s: E) => (
-                <a
+                <Link
                   href={s.url || undefined}
                   key={s.id}
                   rel="noopener noreferrer"
@@ -660,7 +662,7 @@ export default function Portal({
                 >
                   <Avatar name={s.name} image={s.image} size={60} />
                   <strong>{s.name}</strong>
-                </a>
+                </Link>
               ))}
             </div>
           </section>
@@ -672,9 +674,9 @@ export default function Portal({
               <h2>Turnir tashkil qilmoqchimisiz?</h2>
               <p>Musobaqangizni yarating va boshqarishni boshlang.</p>
             </div>
-            <a className="kp-btn" href="/turnir-yaratish">
+            <Link className="kp-btn" href="/turnir-yaratish">
               Turnir yaratish <ArrowRight size={17} />
-            </a>
+            </Link>
           </div>
         </section>
       </>
@@ -743,11 +745,11 @@ export default function Portal({
           "Tashkilotchilar",
           "Sport klublari va musobaqa tashkilotchilari",
         )}
-        <Directory data={d.organizers} kind="organizer" />
-        <a className="kp-btn" href="/tashkilotchi-yaratish">
+        <Directory data={d.organizers} />
+        <Link className="kp-btn" href="/tashkilotchi-yaratish">
           <Plus size={17} />
           Tashkilotchi profili yaratish
-        </a>
+        </Link>
       </main>
     );
   else if (root === "tashkilotchilar" && route[1]) {
@@ -780,7 +782,7 @@ export default function Portal({
                 onClick={() =>
                   user
                     ? act("follow", { target: o.id }).catch(() => {})
-                    : location.assign("/login")
+                    : router.push("/login")
                 }
               >
                 {d.follows.some((f: E) => f.target === o.id) ? (
@@ -822,23 +824,23 @@ export default function Portal({
                   <h2>Bog‘lanish</h2>
                   {o.phone && (
                     <p>
-                      <a href={"tel:" + o.phone}>{o.phone}</a>
+                      <Link href={"tel:" + o.phone}>{o.phone}</Link>
                     </p>
                   )}
                   {o.email && (
                     <p>
-                      <a href={"mailto:" + o.email}>{o.email}</a>
+                      <Link href={"mailto:" + o.email}>{o.email}</Link>
                     </p>
                   )}
                   {o.website && (
-                    <a
+                    <Link
                       className="kp-more"
                       target="_blank"
                       rel="noopener noreferrer"
                       href={o.website}
                     >
                       Rasmiy sayt <ArrowRight size={16} />
-                    </a>
+                    </Link>
                   )}
                   <ContactForm
                     target={o.id}
@@ -898,7 +900,7 @@ export default function Portal({
                   onClick={() =>
                     user
                       ? act("follow", { target: a.id }).catch(() => {})
-                      : location.assign("/login")
+                      : router.push("/login")
                   }
                 >
                   {d.follows.some((f: E) => f.target === a.id)
@@ -927,14 +929,14 @@ export default function Portal({
                   {(a.players || []).map((id: string) => {
                     const p = d.athletes.find((p: E) => p.id === id);
                     return p ? (
-                      <a
+                      <Link
                         href={"/sportchilar/" + p.slug}
                         className="kp-person-line"
                         key={id}
                       >
                         <Avatar name={p.name} image={p.image} />
                         <strong>{p.name}</strong>
-                      </a>
+                      </Link>
                     ) : null;
                   })}
                 </div>
@@ -976,10 +978,10 @@ export default function Portal({
                 <p>{user.email}</p>
               </div>
               {user.role === "admin" && (
-                <a className="kp-btn" href="/admin">
+                <Link className="kp-btn" href="/admin">
                   <LayoutDashboard size={17} />
                   Admin panel
-                </a>
+                </Link>
               )}
             </div>
             <div className="kp-tabs">
@@ -1008,9 +1010,9 @@ export default function Portal({
                   {d.registrations.map((r: E) => (
                     <div key={r.id} className="kp-record-row">
                       <div>
-                        <a href={"/turnirlar/" + r.slug}>
+                        <Link href={"/turnirlar/" + r.slug}>
                           <strong>{r.tournamentName}</strong>
-                        </a>
+                        </Link>
                         <p>
                           {r.team} · {r.count} ishtirokchi
                         </p>
@@ -1043,10 +1045,10 @@ export default function Portal({
               <>
                 <div className="kp-section-title">
                   <h2>Turnirlarim</h2>
-                  <a className="kp-btn" href="/turnir-yaratish">
+                  <Link className="kp-btn" href="/turnir-yaratish">
                     <Plus size={16} />
                     Yaratish
-                  </a>
+                  </Link>
                 </div>
                 {d.mine.map((t: E) => (
                   <div className="kp-panel kp-record-row" key={t.id}>
@@ -1054,12 +1056,12 @@ export default function Portal({
                       <strong>{t.name}</strong>
                       <p>{statusName(t.status)}</p>
                     </div>
-                    <a
+                    <Link
                       className="kp-btn secondary small"
                       href={"/boshqaruv/" + t.slug}
                     >
                       Boshqarish
-                    </a>
+                    </Link>
                     <button
                       className="kp-btn secondary small"
                       onClick={() => setEditor({ kind: "tournament", data: t })}
@@ -1085,7 +1087,7 @@ export default function Portal({
                   <h2>
                     {profileTab === "teams" ? "Jamoalarim" : "Tashkilotlarim"}
                   </h2>
-                  <a
+                  <Link
                     className="kp-btn"
                     href={
                       profileTab === "teams"
@@ -1095,7 +1097,7 @@ export default function Portal({
                   >
                     <Plus size={16} />
                     Yaratish
-                  </a>
+                  </Link>
                 </div>
                 {(profileTab === "teams" ? d.myTeams : d.myOrganizers).map(
                   (e: E) => (
@@ -1189,7 +1191,7 @@ export default function Portal({
               user={user}
               onSaved={async () => {
                 await reload();
-                location.href = "/";
+                router.push("/");
               }}
             />
           </>
@@ -1319,57 +1321,57 @@ export default function Portal({
       <footer className="kp-footer">
         <div className="kp-container kp-footer-grid">
           <div>
-            <a className="kp-logo" href="/">
+            <Link className="kp-logo" href="/">
               <b>{settings.name}</b>
-            </a>
+            </Link>
             <p>{settings.tagline}</p>
           </div>
           <div>
             <h3>Platforma</h3>
             {nav.slice(1).map(([href, label]) => (
-              <a href={href} key={href}>
+              <Link href={href} key={href}>
                 {label}
-              </a>
+              </Link>
             ))}
           </div>
           <div>
             <h3>Foydali</h3>
-            <a href="/hamkorlik">Reklama va hamkorlik</a>
-            <a href="/natijalar">Natijalar</a>
-            <a href="/shartlar">Shartlar va maxfiylik</a>
-            {user?.role === "admin" && <a href="/admin">Admin panel</a>}
+            <Link href="/hamkorlik">Reklama va hamkorlik</Link>
+            <Link href="/natijalar">Natijalar</Link>
+            <Link href="/shartlar">Shartlar va maxfiylik</Link>
+            {user?.role === "admin" && <Link href="/admin">Admin panel</Link>}
           </div>
           <div>
             <h3>Bog‘lanish</h3>
             {settings.contactEmail && (
-              <a href={"mailto:" + settings.contactEmail}>
+              <Link href={"mailto:" + settings.contactEmail}>
                 {settings.contactEmail}
-              </a>
+              </Link>
             )}
             {settings.contactPhone && (
-              <a href={"tel:" + settings.contactPhone}>
+              <Link href={"tel:" + settings.contactPhone}>
                 {settings.contactPhone}
-              </a>
+              </Link>
             )}
             {settings.telegram && (
-              <a
+              <Link
                 href={settings.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Telegram
-              </a>
+              </Link>
             )}
             {settings.instagram && (
-              <a
+              <Link
                 href={settings.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Instagram
-              </a>
+              </Link>
             )}
-            <a href="/biz-haqimizda">Aloqa formasi</a>
+            <Link href="/biz-haqimizda">Aloqa formasi</Link>
           </div>
         </div>
         <div className="kp-container kp-footer-bottom">
@@ -1377,7 +1379,7 @@ export default function Portal({
           himoyalangan.<span>O‘zbekcha</span>
         </div>
       </footer>
-      <nav className="kp-bottom-nav" aria-label="Telefon navigatsiyasi">{[["/","Bosh sahifa",LayoutDashboard],["/turnirlar","Turnirlar",Trophy],["/sportchilar","Sportchilar",Users],["/profil","Kabinet",ShieldCheck],...(user?.role==="admin"?[["/admin","Admin",Settings]]:[])].map(([href,label,Icon]:any)=><a key={href} href={href} className={path===href?"active":""} aria-current={path===href?"page":undefined}><Icon size={21}/><span>{label}</span></a>)}</nav>
+      <nav className="kp-bottom-nav" aria-label="Telefon navigatsiyasi">{([ ["/", "Bosh sahifa", LayoutDashboard], ["/turnirlar", "Turnirlar", Trophy], ["/sportchilar", "Sportchilar", Users], ["/profil", "Kabinet", ShieldCheck], ...(user?.role === "admin" ? [["/admin", "Admin", Settings]] : []) ] as [string, string, typeof LayoutDashboard][]).map(([href, label, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={21}/><span>{label}</span></Link>)}</nav>
       {notice && (
         <div className="kp-toast" role="status">
           <Check size={18} />
@@ -1436,13 +1438,13 @@ export default function Portal({
                       .includes(q.toLowerCase()),
                   )
                   .map((x: E) => (
-                    <a key={x.id} href={x.url}>
+                    <Link key={x.id} href={x.url}>
                       <strong>{x.name}</strong>
                       <span>
                         {x.label} · {x.city}
                       </span>
                       <ChevronRight size={17} />
-                    </a>
+                    </Link>
                   ))}
                 <small>
                   Faqat platformadagi mavjud ma’lumotlar qidiriladi.
@@ -1481,7 +1483,10 @@ export default function Portal({
   );
 }
 function LoginCard({ returnTo,googleEnabled=false }: { returnTo: string;googleEnabled?:boolean }) {
+  const router = useRouter();
   const [next,setNext]=useState(returnTo),[authError,setAuthError]=useState(""),[mode,setMode]=useState<"signin"|"signup">("signin"),[busy,setBusy]=useState(false);
+  // Read redirect and OAuth error parameters from the browser after hydration.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(()=>{const p=new URLSearchParams(location.search),n=p.get("next");if(n&&n.startsWith("/")&&!n.startsWith("//")&&!n.includes("\\"))setNext(n);const e=p.get("auth_error");if(e)setAuthError(e==="google_not_configured"?"Google orqali kirish hali ulanmagan.":"Google bilan kirish yakunlanmadi. Qayta urinib ko‘ring.")},[]);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1490,9 +1495,9 @@ function LoginCard({ returnTo,googleEnabled=false }: { returnTo: string;googleEn
     const form = new FormData(event.currentTarget);
     try {
       const response = await fetch("/api/auth/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, email: form.get("email"), password: form.get("password"), name: form.get("name") }) });
-      const result = await response.json();
+      const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Kirish amalga oshmadi.");
-      location.assign(mode === "signup" ? "/register" : next || "/");
+      router.push(mode === "signup" ? "/register" : next || "/");
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Kirish amalga oshmadi. Qayta urinib ko‘ring.");
       setBusy(false);
@@ -1517,20 +1522,20 @@ function LoginCard({ returnTo,googleEnabled=false }: { returnTo: string;googleEn
         <button className="kp-btn" type="submit" disabled={busy}>{busy ? "Kuting…" : mode === "signup" ? "Hisob yaratish" : "Email bilan kirish"}</button>
       </form>
       <button className="kp-auth-toggle" type="button" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setAuthError(""); }}>{mode === "signin" ? "Hisobingiz yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
-      {googleEnabled?<a target="_top" href={"/auth/google/start?return_to="+encodeURIComponent(next)} className="kp-btn kp-google-button"><GoogleMark/>Google orqali kirish</a>:<><button className="kp-btn kp-google-button" disabled><GoogleMark/>Google orqali kirish</button><small>Google orqali kirish hozircha mavjud emas.</small></>}
+      {googleEnabled?<Link target="_top" href={"/auth/google/start?return_to="+encodeURIComponent(next)} className="kp-btn kp-google-button"><GoogleMark/>Google orqali kirish</Link>:<><button className="kp-btn kp-google-button" disabled><GoogleMark/>Google orqali kirish</button><small>Google orqali kirish hozircha mavjud emas.</small></>}
       <small>
         Birinchi kirishda KiGo hisobingiz yaratiladi. Keyin profil
         ma’lumotlarini to‘ldirasiz.
       </small>
-      <a href="/shartlar" className="kp-muted">
+      <Link href="/shartlar" className="kp-muted">
         Shartlar va maxfiylik
-      </a>
+      </Link>
     </section>
   );
 }
 function OrganizerCard({ o }: { o: E }) {
   return (
-    <a className="kp-panel kp-org-card" href={"/tashkilotchilar/" + o.slug}>
+    <Link className="kp-panel kp-org-card" href={"/tashkilotchilar/" + o.slug}>
       <Avatar name={o.name} image={o.image} size={64} />
       <h3>
         {o.name} {o.verified && <ShieldCheck size={17} />}
@@ -1546,10 +1551,10 @@ function OrganizerCard({ o }: { o: E }) {
           </>
         )}
       </span>
-    </a>
+    </Link>
   );
 }
-function Directory({ data, kind }: { data: E[]; kind: string }) {
+function Directory({ data }: { data: E[] }) {
   const [q, setQ] = useState("");
   const filtered = data.filter((x) =>
     (x.name + " " + x.city + " " + x.sport)
@@ -1593,13 +1598,17 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
     [pay, setPay] = useState("Hammasi"),
     [sort, setSort] = useState("date"),
     [page, setPage] = useState(1);
+  // URL query is only available in the browser; initialize the selected filters after hydration.
   useEffect(() => {
     const p = new URLSearchParams(location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync URL filters once at page load.
     setQ(p.get("q") || "");
     setSport(p.get("sport") || "Hammasi");
   }, []);
+  // Reset pagination when filters change to avoid an empty page past the new result count.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setPage(1), [q, sport, status, city, pay]);
-  let items = tournaments.filter(
+  const items = tournaments.filter(
     (t) =>
       (!q ||
         (t.name + " " + t.sport + " " + t.city)
@@ -1800,7 +1809,7 @@ function Athletes({ data }: { data: E }) {
                 <tr key={a.id}>
                   <td>{i + 1}</td>
                   <td>
-                    <a
+                    <Link
                       className="kp-person-line"
                       href={
                         "/" +
@@ -1814,7 +1823,7 @@ function Athletes({ data }: { data: E }) {
                         <strong>{a.name}</strong>
                         <small>{a.city}</small>
                       </span>
-                    </a>
+                    </Link>
                   </td>
                   <td>{a.sport}</td>
                   <td>{a.matches}</td>
@@ -1918,9 +1927,9 @@ export function ContactForm({
           </button>
         </>
       ) : (
-        <a className="kp-btn secondary" href="/login">
+        <Link className="kp-btn secondary" href="/login">
           Xabar yuborish uchun kiring
-        </a>
+        </Link>
       )}
     </form>
   );
@@ -2011,7 +2020,7 @@ export function Inbox({
   notify,
 }: {
   messages: E[];
-  reload: () => Promise<any>;
+  reload: () => Promise<unknown>;
   notify: (s: string) => void;
 }) {
   const [reply, setReply] = useState(""),
@@ -2168,7 +2177,7 @@ function Reviews({
           )}
         </form>
       ) : (
-        <a href="/login">Sharh qoldirish uchun kiring</a>
+        <Link href="/login">Sharh qoldirish uchun kiring</Link>
       )}
     </section>
   );
@@ -2183,16 +2192,17 @@ function TournamentDetail({
   slug: string;
   manage: boolean;
   bootstrap: E;
-  refresh: () => Promise<any>;
+  refresh: () => Promise<unknown>;
   notify: (s: string) => void;
 }) {
+  const router = useRouter();
   const [data, setData] = useState<E | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [tab, setTab] = useState("about"),
     [edit, setEdit] = useState(false),
     [matchEdit, setMatchEdit] = useState<E | null>(null);
-  async function load() {
+  const load = useCallback(async () => {
     const r = await fetch(
       "/api/kigo?action=tournament&slug=" + encodeURIComponent(slug),
       { cache: "no-store" },
@@ -2200,16 +2210,18 @@ function TournamentDetail({
     const b = (await r.json()) as E;
     if (!r.ok) throw new Error(b.error);
     setData(b);
-  }
+  }, [slug]);
   useEffect(() => {
     let active = true;
+    // Load the selected tournament and poll while its detail page is open.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load().catch((e) => active && setError(e.message));
     const t = setInterval(() => load().catch(() => {}), 15000);
     return () => {
       active = false;
       clearInterval(t);
     };
-  }, [slug]);
+  }, [load]);
   async function perform(action: string, p: E) {
     setBusy(true);
     setError("");
@@ -2271,10 +2283,10 @@ function TournamentDetail({
     <>
       <section className="kp-detail-hero">
         <div className="kp-container">
-          <a href="/turnirlar" className="kp-breadcrumb">
+          <Link href="/turnirlar" className="kp-breadcrumb">
             <ArrowLeft size={14} />
             Turnirlar
-          </a>
+          </Link>
           <div className="kp-chips">
             <span>{t.sport}</span>
             <span>{statusName(t.status)}</span>
@@ -2297,9 +2309,9 @@ function TournamentDetail({
           </div>
           {data.isOwner && (
             <div className="kp-form-actions">
-              <a className="kp-btn" href={"/boshqaruv/" + slug}>
+              <Link className="kp-btn" href={"/boshqaruv/" + slug}>
                 Tashkilotchi paneli
-              </a>
+              </Link>
               <button className="kp-btn outline" onClick={() => setEdit(true)}>
                 Tahrirlash
               </button>
@@ -2524,12 +2536,12 @@ function TournamentDetail({
                   <Check size={20} />
                   <strong>Arizangiz yuborilgan</strong>
                   <p>{statusName(data.myRegistration.status)}</p>
-                  <a href="/profil">Kabinetda ko‘rish</a>
+                  <Link href="/profil">Kabinetda ko‘rish</Link>
                 </div>
               ) : t.status !== "ochiq" ? (
                 <p className="kp-alert">Bu turnirga ro‘yxatdan o‘tish yopiq.</p>
               ) : !user ? (
-                <a
+                <Link
                   className="kp-btn"
                   target="_top"
                   href={
@@ -2538,7 +2550,7 @@ function TournamentDetail({
                   }
                 >
                   Kirish va ariza yuborish
-                </a>
+                </Link>
               ) : (
                 <form
                   className="kp-form"
@@ -2604,7 +2616,7 @@ function TournamentDetail({
                 onClick={async () => {
                   try {
                     if (!user) {
-                      location.href = "/login";
+                      router.push("/login");
                       return;
                     }
                     const r = await requestApi("bookmark", { target: t.id });
@@ -2626,14 +2638,14 @@ function TournamentDetail({
             {org && (
               <article className="kp-panel">
                 <h3>Tashkilotchi</h3>
-                <a
+                <Link
                   className="kp-person-line"
                   href={"/tashkilotchilar/" + org.slug}
                 >
                   <Avatar name={org.name} image={org.image} />
                   <strong>{org.name}</strong>
                   {org.verified && <ShieldCheck size={20} />}
-                </a>
+                </Link>
               </article>
             )}
             <article className="kp-panel">
@@ -2663,7 +2675,7 @@ function TournamentDetail({
                   <CalendarDays size={16} />
                   Kalendarga qo‘shish
                 </button>
-                <a
+                <Link
                   className="kp-link"
                   href={
                     "https://t.me/share/url?url=" +
@@ -2677,7 +2689,7 @@ function TournamentDetail({
                   rel="noopener noreferrer"
                 >
                   Telegramda ulashish
-                </a>
+                </Link>
               </div>
             </article>
             {bootstrap.ads

@@ -7,6 +7,7 @@ const addDays = (date: Date, days: number) => {
 };
 
 export async function ensureDemoContent() {
+  if (!process.env.VERCEL) return;
   if (await findRecord("system:demo-content-v2")) return;
   const today = new Date();
   const pastStart = addDays(today, -20);
@@ -59,6 +60,7 @@ export async function ensureDemoContent() {
       tournament.city,
       {
         ...tournament,
+        img: tournament.image,
         description: "Demo turnir — namunaviy sahifa ma’lumoti.",
         startDate: pastStart,
         endDate: pastEnd,

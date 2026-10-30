@@ -6,7 +6,7 @@ const encoder = new TextEncoder();
 
 async function hashPassword(password: string, salt: Uint8Array) {
   const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 310000 }, key, 256);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new Uint8Array(salt).buffer as ArrayBuffer, iterations: 310000 }, key, 256);
   return Array.from(new Uint8Array(bits), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 

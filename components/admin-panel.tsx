@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import BackupPanel from "./backup-panel";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Trophy,
@@ -28,7 +29,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  LogOut,
 } from "./icons";
 import EntityEditor, {
   requestApi,
@@ -37,7 +37,7 @@ import EntityEditor, {
   type E,
 } from "./entity-editor";
 import { Avatar, statusName, MatchForm } from "./portal";
-const sections: [string, string, any][] = [
+const sections: [string, string, typeof LayoutDashboard][] = [
   ["backups", "Zaxira va tiklash", ShieldCheck],
   ["overview", "Umumiy ko‘rinish", LayoutDashboard],
   ["tournament", "Turnirlar", Trophy],
@@ -81,7 +81,7 @@ export default function AdminPanel() {
     [busy, setBusy] = useState(false),
     [reply, setReply] = useState<E | null>(null),
     [replyText, setReplyText] = useState("");
-  async function load(silent = false) {
+  const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
       const [r, b, o] = await Promise.all([
@@ -115,12 +115,14 @@ export default function AdminPanel() {
     } finally {
       setLoading(false);
     }
-  }
-  useEffect(() => {
-    let timer = setTimeout(() => load(), 200);
-    return () => clearTimeout(timer);
   }, [kind, page, q, archived]);
   useEffect(() => {
+    const timer = setTimeout(() => load(), 200);
+    return () => clearTimeout(timer);
+  }, [load]);
+  // The visible result set changed, so clear selections to prevent acting on hidden rows.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Do not carry selection into a different result set.
     setSelected([]);
   }, [kind, page, q, archived]);
   useEffect(() => {
@@ -189,7 +191,7 @@ export default function AdminPanel() {
         "role",
         "createdAt",
       ];
-      const cell = (v: any) => {
+      const cell = (v: unknown) => {
         let s = String(v ?? "");
         if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
         return '"' + s.replaceAll('"', '""') + '"';
@@ -217,7 +219,7 @@ export default function AdminPanel() {
   return (
     <div className="ka-app">
       <aside className={"ka-sidebar " + (mobile ? "open" : "")}>
-        <a className="kp-logo" href="/admin">
+        <Link className="kp-logo" href="/admin">
           <img
             src="/assets/bca122512fa5256bed436ae228fecea1"
             width="30"
@@ -227,7 +229,7 @@ export default function AdminPanel() {
           <b>
             KiGo<span className="ka-admin-tag">ADMIN</span>
           </b>
-        </a>
+        </Link>
         <div className="ka-workspace">
           <span className="ka-live-dot" />
           Boshqaruv markazi<small>Haqiqiy ma’lumotlar</small>
@@ -252,10 +254,10 @@ export default function AdminPanel() {
           ))}
         </nav>
         <div className="ka-sidebar-bottom">
-          <a href="/" target="_blank" rel="noopener noreferrer">
+          <Link href="/" target="_blank" rel="noopener noreferrer">
             Saytni ochish <ArrowUpRight size={16} />
-          </a>
-          <a href="/profil">Shaxsiy kabinet</a>
+          </Link>
+          <Link href="/profil">Shaxsiy kabinet</Link>
         </div>
       </aside>
       {mobile && (
@@ -344,12 +346,12 @@ export default function AdminPanel() {
           {kind === "overview" && overview && (
             <>
               <div className="ka-metrics">
-                {[
+                {([
                   ["tournament", "Turnirlar", Trophy],
                   ["account", "Foydalanuvchilar", Users],
                   ["registration", "Arizalar", ClipboardList],
                   ["ad", "Reklamalar", Megaphone],
-                ].map(([key, label, Icon]: any) => (
+                ] as [string, string, typeof LayoutDashboard][]).map(([key, label, Icon]) => (
                   <button
                     className="ka-metric"
                     key={key}
@@ -812,12 +814,12 @@ export default function AdminPanel() {
                                       </button>
                                     )}
                                     {kind === "tournament" && (
-                                      <a
+                                      <Link
                                         className="kp-link"
                                         href={"/boshqaruv/" + r.slug}
                                       >
                                         Boshqarish
-                                      </a>
+                                      </Link>
                                     )}
                                     {kind === "match" && (
                                       <button

@@ -1,6 +1,7 @@
 import {automaticBackup} from "@/lib/backups";
 import {googleReady} from "@/lib/app-auth";
 import {ensureDemoContent} from "@/lib/demo-content";
+import {chatGPTAuthAvailable} from "@/app/chatgpt-auth";
 import { z } from "zod";
 import { listRecords, writeRecords, incrementRateRecord, createRegistrationIfAvailable, pingRecordStore } from "@/lib/record-store";
 import { env } from "cloudflare:workers";
@@ -8,7 +9,6 @@ import {
   ApiError,
   identity,
   required,
-  admin,
   list,
   find,
   put,
@@ -23,7 +23,6 @@ import {
   slugify,
   type Entity,
   type ManagedKind,
-  type Row,
 } from "@/lib/kigo-store";
 export const dynamic = "force-dynamic";
 const json = (data: unknown, status = 200) =>
@@ -79,7 +78,7 @@ async function data() {
 }
 async function stats() {
   const rows = await listRecords();
-  const values = rows.map((row) => ({ ...row, ...JSON.parse(row.data) }));
+  const values = rows.map((row) => ({ ...row, ...JSON.parse(row.data) })).filter((row) => !row.demo);
   const n = Object.fromEntries([...new Set(values.map((row) => row.kind))].map((kind) => [kind, values.filter((row) => row.kind === kind && !row.deletedAt && (kind !== "account" || row.status !== "suspended")).length]));
   const tournaments = values.filter((row) => row.kind === "tournament" && !row.deletedAt);
   const complete = tournaments.filter((row) => row.status === "tugagan").length;
@@ -206,15 +205,16 @@ export async function GET(request: Request) {
         .filter((m) => m.ownerId === u?.id || m.recipientId === u?.id)
         .map((m) => ({ ...m, outgoing: m.ownerId === u?.id })),
       media,
-      services: { sms: false, payments: false, identity: "chatgpt", google:googleReady() },
+      services: { sms: false, payments: false, identity: chatGPTAuthAvailable() ? "chatgpt" : "email", google:googleReady() },
     });
   } catch (e) {
     return fail(e);
   }
 }
 function average(r: Entity[]) {
-  return r.length
-    ? Math.round((r.reduce((s, r) => s + r.rating, 0) / r.length) * 10) / 10
+  const genuine = r.filter((review) => !review.demo);
+  return genuine.length
+    ? Math.round((genuine.reduce((s, review) => s + review.rating, 0) / genuine.length) * 10) / 10
     : null;
 }
 function fail(e: unknown) {
