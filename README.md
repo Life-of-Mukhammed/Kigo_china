@@ -29,6 +29,18 @@ KIGO_ADMIN_EMAILS=owner@example.com
 
 `.dev.vars` Git va ZIPga kirmaydi. Productionda secret sifatida sozlang. Production ruxsat doirasi Sites access policy bilan alohida boshqariladi; saytning avvalgi xususiy auditoriyasi saqlangan.
 
+## Vercel deploy
+
+Vercel build Nitro adapteri orqali `.vercel/output` serverless deployment yaratadi. Build commandni `npm run build` holida qoldiring; output directoryni qo‘lda `dist` yoki `dist/client`ga o‘zgartirmang. Vercel Node.js 22.22+ ishlatadi.
+
+Vercel Project Settings → Environment Variables’da quyidagilarni kiriting:
+
+- `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`: Turso/libSQL SQLite database ulanishi.
+- `R2_ENDPOINT`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; ixtiyoriy `R2_REGION` (odatda `auto`): R2 S3-compatible fayl saqlash ulanishi.
+- `KIGO_ADMIN_EMAILS`, `KIGO_PUBLIC_ORIGIN`; Google login uchun `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+
+Turso bazasida `drizzle/0000_chunky_titania.sql` migratsiyasini bir marta bajaring. Cloudflare D1’dagi mavjud foydalanuvchi va turnir ma’lumotlari Turso’ga avtomatik ko‘chmaydi; deploydan oldin alohida eksport/import qiling. Sozlamalarni saqlagach Redeploy qiling.
+
 # Kigo_china
 
 ## Asosiy sahifalar

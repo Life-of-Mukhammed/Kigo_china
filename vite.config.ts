@@ -5,6 +5,7 @@ import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { configureToolEnvironment } from "./scripts/tool-environment.mjs";
 import { sites } from "./scripts/vite/sites-vite-plugin";
 import { connectorPreview } from "./scripts/vite/connector-preview-plugin.mjs";
+import { nitro } from "nitro/vite";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
@@ -39,9 +40,45 @@ const localBindingConfig = {
 
 export default defineConfig(async ({ command }) => {
   configureToolEnvironment(process.cwd());
+  const isVercel = Boolean(process.env.VERCEL);
 
-  // Wrangler snapshots its log path while the Cloudflare plugin is imported.
-  const { cloudflare } = await import("@cloudflare/vite-plugin");
+  const platformPlugins = isVercel
+    ? [nitro()]
+    : await (async () => {
+        // Wrangler snapshots its log path while the Cloudflare plugin is imported.
+        const { cloudflare } = await import("@cloudflare/vite-plugin");
+        return [cloudflare({
+          viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+          inspectorPort: false,
+          config: {
+            ...localBindingConfig,
+            ...(command === "serve"
+              ? {
+                  services: [
+                    {
+                      binding: "CONNECTORS",
+                      service: "sites-connector-preview",
+                      entrypoint: "ConnectorPreview",
+                    },
+                  ],
+                }
+              : {}),
+          },
+          ...(command === "serve"
+            ? {
+                auxiliaryWorkers: [
+                  {
+                    config: {
+                      name: "sites-connector-preview",
+                      main: "./scripts/connector-preview/worker.mjs",
+                      compatibility_date: "2026-05-15",
+                    },
+                  },
+                ],
+              }
+            : {}),
+        })];
+      })();
 
   return {
     server: {
@@ -52,41 +89,14 @@ export default defineConfig(async ({ command }) => {
         ? { watch: { useFsEvents: false, usePolling: true } }
         : {}),
     },
+    resolve: isVercel
+      ? { alias: { "cloudflare:workers": new URL("./lib/vercel-workers.ts", import.meta.url).pathname } }
+      : undefined,
     plugins: [
       vinext(),
       sites({ mockAuth: false }),
       connectorPreview(),
-      cloudflare({
-        viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-        inspectorPort: false,
-        config: {
-          ...localBindingConfig,
-          ...(command === "serve"
-            ? {
-                services: [
-                  {
-                    binding: "CONNECTORS",
-                    service: "sites-connector-preview",
-                    entrypoint: "ConnectorPreview",
-                  },
-                ],
-              }
-            : {}),
-        },
-        ...(command === "serve"
-          ? {
-              auxiliaryWorkers: [
-                {
-                  config: {
-                    name: "sites-connector-preview",
-                    main: "./scripts/connector-preview/worker.mjs",
-                    compatibility_date: "2026-05-15",
-                  },
-                },
-              ],
-            }
-          : {}),
-      }),
+      ...platformPlugins,
     ],
   };
 });
