@@ -41,23 +41,37 @@ function mongoDoc(record: StoredRecord): MongoRecord {
   return { ...record, payload: JSON.parse(record.data) as Record<string, unknown> };
 }
 
-function plainRow(record: MongoRecord): StoredRecord {
+async function plainRow(collection: Collection<MongoRecord>, record: MongoRecord): Promise<StoredRecord | null> {
   const { _id: _ignored, payload: _payload, ...row } = record as MongoRecord & { _id?: unknown };
-  return row;
+  try {
+    JSON.parse(row.data);
+    return row;
+  } catch {
+    if (_payload && typeof _payload === "object" && !Array.isArray(_payload)) {
+      const repaired = JSON.stringify(_payload);
+      await collection.updateOne({ id: row.id, data: row.data }, { $set: { data: repaired } });
+      console.error("Recovered invalid MongoDB record JSON:", row.id, row.kind);
+      return { ...row, data: repaired };
+    }
+    console.error("Skipped MongoDB record with invalid JSON and no payload:", row.id, row.kind);
+    return null;
+  }
 }
 
 export async function findRecord(id: string): Promise<StoredRecord | null> {
   if (useMongo) {
-    const row = await (await mongoCollection()).findOne({ id });
-    return row ? plainRow(row) : null;
+    const collection = await mongoCollection();
+    const row = await collection.findOne({ id });
+    return row ? plainRow(collection, row) : null;
   }
   return env.DB.prepare("SELECT * FROM records WHERE id=?").bind(id).first<StoredRecord>();
 }
 
 export async function listRecords(kind?: string): Promise<StoredRecord[]> {
   if (useMongo) {
-    const rows = await (await mongoCollection()).find(kind ? { kind } : {}).toArray();
-    return rows.map(plainRow);
+    const collection = await mongoCollection();
+    const rows = await collection.find(kind ? { kind } : {}).toArray();
+    return (await Promise.all(rows.map((row) => plainRow(collection, row)))).filter((row): row is StoredRecord => row !== null);
   }
   const query = kind ? env.DB.prepare("SELECT * FROM records WHERE kind=?").bind(kind) : env.DB.prepare("SELECT * FROM records");
   return (await query.all<StoredRecord>()).results;
@@ -217,8 +231,9 @@ export async function removeRecord(id: string, kind?: string) {
 
 export async function takeRecord(id: string, kind: string) {
   if (useMongo) {
-    const result = await (await mongoCollection()).findOneAndDelete({ id, kind });
-    return result ? plainRow(result) : null;
+    const collection = await mongoCollection();
+    const result = await collection.findOneAndDelete({ id, kind });
+    return result ? (await plainRow(collection, result)) : null;
   }
   return env.DB.prepare("DELETE FROM records WHERE id=? AND kind=? RETURNING *").bind(id, kind).first<StoredRecord>();
 }

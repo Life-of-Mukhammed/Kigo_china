@@ -226,8 +226,6 @@ function fail(e: unknown) {
       },
       400,
     );
-  if (e instanceof SyntaxError)
-    return json({ error: "JSON ma’lumoti noto‘g‘ri" }, 400);
   console.error(e);
   return json({ error: "Server xatosi. Qayta urinib ko‘ring." }, 500);
 }
@@ -241,7 +239,13 @@ async function payload(request: Request) {
   const text = await request.text();
   if (new TextEncoder().encode(text).length > 65536)
     throw new ApiError("So‘rov hajmi katta", 413);
-  return z.record(z.unknown()).parse(JSON.parse(text));
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new ApiError("So‘rov JSON formati noto‘g‘ri", 400);
+  }
+  return z.record(z.unknown()).parse(parsed);
 }
 async function limit(owner: string) {
   const bucket = Math.floor(Date.now() / 60000),
