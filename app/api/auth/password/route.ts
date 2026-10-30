@@ -45,7 +45,11 @@ export async function POST(request: Request) {
     const origin = publicOrigin(request);
     const cookie = await createSession({ id: userId, email, name }, origin, 'password');
     return Response.json({ ok: true }, { headers: { 'Set-Cookie': cookie, 'Cache-Control': 'no-store' } });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error
+      ? `${error.name}: ${error.message.replace(/mongodb(?:\+srv)?:\/\/[^\s"'`]+/gi, "[MongoDB URI redacted]")}`
+      : 'Unknown error';
+    console.error('Password auth request failed:', message);
     return Response.json({ error: 'Kirish amalga oshmadi. Qayta urinib ko‘ring.' }, { status: 500 });
   }
 }

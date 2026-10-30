@@ -78,10 +78,32 @@ function d1Write(write: RecordWrite) {
     .bind(record.id, record.kind, record.owner, record.target, record.data, record.created_at);
 }
 
+async function applyMongoWrite(collection: Collection<MongoRecord>, write: RecordWrite, session?: ClientSession) {
+  const filter: Record<string, unknown> = { id: write.record.id };
+  if (write.expectedUpdatedAt !== undefined)
+    filter["payload.updatedAt"] = write.expectedUpdatedAt;
+  const doc = mongoDoc(write.record);
+  const sessionOptions = session ? { session } : {};
+  const result = write.insertOnly
+    ? await collection.updateOne(filter, { $setOnInsert: doc }, { ...sessionOptions, upsert: true })
+    : write.replace
+      ? await collection.replaceOne(filter, doc, { ...sessionOptions, upsert: write.expectedUpdatedAt === undefined })
+      : await collection.updateOne(
+          filter,
+          {
+            $set: { kind: write.record.kind, owner: write.record.owner, target: write.record.target, data: write.record.data, payload: doc.payload },
+            $setOnInsert: { id: write.record.id, created_at: write.record.created_at },
+          },
+          { ...sessionOptions, upsert: write.expectedUpdatedAt === undefined },
+        );
+  return write.insertOnly ? result.upsertedCount : (result.matchedCount || result.upsertedCount);
+}
+
 export async function writeRecords(writes: RecordWrite[]): Promise<number[]> {
   if (!writes.length) return [];
   if (useMongo) {
     const collection = await mongoCollection();
+    if (writes.length === 1) return [await applyMongoWrite(collection, writes[0])];
     const client = await globalMongo.kigoMongoClient!;
     const changes: number[] = [];
     let precedingChanged = true;
@@ -91,23 +113,7 @@ export async function writeRecords(writes: RecordWrite[]): Promise<number[]> {
           changes.push(0);
           continue;
         }
-        const filter: Record<string, unknown> = { id: write.record.id };
-        if (write.expectedUpdatedAt !== undefined)
-          filter["payload.updatedAt"] = write.expectedUpdatedAt;
-        const doc = mongoDoc(write.record);
-        const result = write.insertOnly
-          ? await collection.updateOne(filter, { $setOnInsert: doc }, { session, upsert: true })
-          : write.replace
-            ? await collection.replaceOne(filter, doc, { session, upsert: write.expectedUpdatedAt === undefined })
-            : await collection.updateOne(
-                filter,
-                {
-                  $set: { kind: write.record.kind, owner: write.record.owner, target: write.record.target, data: write.record.data, payload: doc.payload },
-                  $setOnInsert: { id: write.record.id, created_at: write.record.created_at },
-                },
-                { session, upsert: write.expectedUpdatedAt === undefined },
-              );
-        const changed = write.insertOnly ? result.upsertedCount : (result.matchedCount || result.upsertedCount);
+        const changed = await applyMongoWrite(collection, write, session);
         changes.push(changed);
         precedingChanged = changed > 0;
       }
