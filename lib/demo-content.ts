@@ -1,4 +1,4 @@
-import { findRecord, recordWrite, writeRecords } from "@/lib/record-store";
+import { findRecord, recordWrite, removeRecord, writeRecords } from "@/lib/record-store";
 
 const addDays = (date: Date, days: number) => {
   const result = new Date(date);
@@ -7,7 +7,7 @@ const addDays = (date: Date, days: number) => {
 };
 
 export async function ensureDemoContent() {
-  if (await findRecord("system:demo-content-v1")) return;
+  if (await findRecord("system:demo-content-v2")) return;
   const today = new Date();
   const pastStart = addDays(today, -20);
   const pastEnd = addDays(today, -19);
@@ -71,7 +71,7 @@ export async function ensureDemoContent() {
       { insertOnly: true },
     )),
     ...reviews.map((review) => recordWrite(review.id, "review", review.owner, review.target, review.data, { insertOnly: true })),
-    ...sports.map((sport, index) => recordWrite(
+    ...sports.slice(0, 1).map((sport, index) => recordWrite(
       `demo-ad-${index + 1}`,
       "ad",
       "kigo-demo",
@@ -94,5 +94,6 @@ export async function ensureDemoContent() {
     )),
   ];
   await Promise.all(writes.map((write) => writeRecords([write])));
-  await writeRecords([recordWrite("system:demo-content-v1", "system", "system", "", { version: 1 })]);
+  await Promise.all([2, 3, 4, 5].map((number) => removeRecord(`demo-ad-${number}`, "ad")));
+  await writeRecords([recordWrite("system:demo-content-v2", "system", "system", "", { version: 2 })]);
 }
