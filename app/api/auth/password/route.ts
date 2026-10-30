@@ -1,6 +1,6 @@
-import { env } from 'cloudflare:workers';
 import { createSession, publicOrigin } from '@/lib/app-auth';
 import { digest } from '@/lib/auth-crypto';
+import { findRecord, recordWrite, writeRecords } from '@/lib/record-store';
 
 const encoder = new TextEncoder();
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
     const emailKey = await digest(email);
     const id = `password:${emailKey}`;
-    const current = await env.DB.prepare("SELECT owner,data FROM records WHERE id=? AND kind='password-account'").bind(id).first<{ owner: string; data: string }>();
+    const current = await findRecord(id);
     let userId: string;
     let name: string;
     if (mode === 'signup') {
@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const saltHex = Array.from(salt, byte => byte.toString(16).padStart(2, '0')).join('');
       const passwordHash = await hashPassword(password, salt);
-      await env.DB.prepare("INSERT INTO records(id,kind,owner,target,data,created_at) VALUES(?,'password-account',?,'password',?,?)").bind(id, userId, JSON.stringify({ email, name, salt: saltHex, passwordHash, createdAt: new Date().toISOString() }), new Date().toISOString()).run();
+      const inserted = await writeRecords([recordWrite(id, 'password-account', userId, 'password', { email, name, salt: saltHex, passwordHash, createdAt: new Date().toISOString() }, { insertOnly: true })]);
+      if (!inserted[0]) return Response.json({ error: 'Bu email bilan hisob mavjud. Kirish bo‘limidan foydalaning.' }, { status: 409 });
     } else {
       if (!current) return Response.json({ error: 'Email yoki parol noto‘g‘ri.' }, { status: 401 });
       const account = JSON.parse(current.data) as { email: string; name: string; salt: string; passwordHash: string };

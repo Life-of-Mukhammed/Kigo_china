@@ -1,6 +1,6 @@
 import {automaticBackup} from "@/lib/backups";
-import { env } from "cloudflare:workers";
 import { z } from "zod";
+import { listRecords, writeRecords } from "@/lib/record-store";
 import {
   ApiError,
   admin,
@@ -10,7 +10,6 @@ import {
   isOwnerEmail,
   decode,
   type Entity,
-  type Row,
 } from "@/lib/kigo-store";
 export const dynamic = "force-dynamic";
 const respond = (d: unknown, status = 200) =>
@@ -38,50 +37,33 @@ export async function GET(request: Request) {
     const url = new URL(request.url),
       kind = url.searchParams.get("kind") || "overview";
     if (kind === "overview") {
-      const counts = await env.DB.prepare(
-        "SELECT kind,count(*) AS n FROM records WHERE json_extract(data,'$.deletedAt') IS NULL GROUP BY kind",
-      ).all();
-      const ads = await env.DB.prepare(
-        "SELECT target,json_extract(data,'$.event') AS event,count(*) AS n FROM records WHERE kind='ad-event' GROUP BY target,json_extract(data,'$.event')",
-      ).all();
-      const recent = await env.DB.prepare(
-        "SELECT * FROM records WHERE kind='audit' ORDER BY created_at DESC LIMIT 20",
-      ).all<Row>();
+      const all = await listRecords();
+      const counts = [...new Set(all.map((row) => row.kind))].map((k) => ({kind:k,n:all.filter((row)=>row.kind===k&&!JSON.parse(row.data).deletedAt).length}));
+      const eventCounts = new Map<string,{target:string;event:string;n:number}>();
+      for(const row of all.filter((item)=>item.kind==="ad-event")){const event=JSON.parse(row.data).event as string,key=row.target+":"+event,current=eventCounts.get(key);eventCounts.set(key,{target:row.target,event,n:(current?.n||0)+1})}
+      const recent = all.filter((row)=>row.kind==="audit").sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,20);
       return respond({
         user,
-        counts: counts.results,
-        adStats: ads.results,
-        recent: recent.results.map(decode),
+        counts,
+        adStats: [...eventCounts.values()],
+        recent: recent.map(decode),
       });
     }
     if (!kinds.includes(kind)) throw new ApiError("Bo‘lim topilmadi", 404);
     const page = Math.max(1, Number(url.searchParams.get("page")) || 1),
       q = (url.searchParams.get("q") || "").slice(0, 100),
       archived = url.searchParams.get("archived") === "1";
-    const where =
-      "kind=? AND " +
-      (archived
-        ? "json_extract(data,'$.deletedAt') IS NOT NULL"
-        : "json_extract(data,'$.deletedAt') IS NULL") +
-      (q ? " AND (data LIKE ? OR id LIKE ?)" : "");
-    const args = q ? [kind, "%" + q + "%", "%" + q + "%"] : [kind];
-    const count = await env.DB.prepare(
-      "SELECT count(*) AS n FROM records WHERE " + where,
-    )
-      .bind(...args)
-      .first<{ n: number }>();
-    const rows = await env.DB.prepare(
-      "SELECT * FROM records WHERE " +
-        where +
-        " ORDER BY created_at DESC LIMIT 30 OFFSET ?",
-    )
-      .bind(...args, (page - 1) * 30)
-      .all<Row>();
+    const matching = (await listRecords(kind)).filter((row) => {
+      const deleted = !!JSON.parse(row.data).deletedAt;
+      return deleted === archived && (!q || row.data.toLowerCase().includes(q.toLowerCase()) || row.id.toLowerCase().includes(q.toLowerCase()));
+    }).sort((a,b)=>b.created_at.localeCompare(a.created_at));
+    const total = matching.length;
+    const rows = matching.slice((page - 1) * 30, page * 30);
     return respond({
-      items: rows.results.map(decode),
+      items: rows.map(decode),
       page,
-      total: count?.n || 0,
-      pages: Math.max(1, Math.ceil((count?.n || 0) / 30)),
+      total,
+      pages: Math.max(1, Math.ceil(total / 30)),
       user,
     });
   } catch (e) {
@@ -145,7 +127,7 @@ async function handlePOST(request: Request) {
         throw new ApiError("Xabar holati noto‘g‘ri");
       next = { ...next, status: b.status };
     }
-    await env.DB.batch([
+    await writeRecords([
       statement(r.id, r.kind, r.ownerId, r.target || r.slug || "", next),
       await audit(user.id, b.action, r.id, r, next),
     ]);

@@ -1,7 +1,8 @@
 import {automaticBackup} from "@/lib/backups";
 import {googleReady} from "@/lib/app-auth";
-import { env } from "cloudflare:workers";
 import { z } from "zod";
+import { listRecords, writeRecords, incrementRateRecord, createRegistrationIfAvailable, pingRecordStore } from "@/lib/record-store";
+import { env } from "cloudflare:workers";
 import {
   ApiError,
   identity,
@@ -76,21 +77,17 @@ async function data() {
   };
 }
 async function stats() {
-  const r = await env.DB.prepare(
-    "SELECT kind,count(*) AS n FROM records WHERE json_extract(data,'$.deletedAt') IS NULL AND (kind != 'account' OR json_extract(data,'$.status') != 'suspended') GROUP BY kind",
-  ).all<{ kind: string; n: number }>();
-  const n = Object.fromEntries(r.results.map((x) => [x.kind, x.n]));
-  const complete = await env.DB.prepare(
-    "SELECT count(*) AS n FROM records WHERE kind='tournament' AND json_extract(data,'$.deletedAt') IS NULL AND json_extract(data,'$.status')='tugagan'",
-  ).first<{ n: number }>();
-  const sports = await env.DB.prepare(
-    "SELECT count(DISTINCT json_extract(data,'$.sport')) AS n FROM records WHERE kind='tournament' AND json_extract(data,'$.deletedAt') IS NULL AND json_extract(data,'$.status')!='draft'",
-  ).first<{ n: number }>();
+  const rows = await listRecords();
+  const values = rows.map((row) => ({ ...row, ...JSON.parse(row.data) }));
+  const n = Object.fromEntries([...new Set(values.map((row) => row.kind))].map((kind) => [kind, values.filter((row) => row.kind === kind && !row.deletedAt && (kind !== "account" || row.status !== "suspended")).length]));
+  const tournaments = values.filter((row) => row.kind === "tournament" && !row.deletedAt);
+  const complete = tournaments.filter((row) => row.status === "tugagan").length;
+  const sports = new Set(tournaments.filter((row) => row.status !== "draft").map((row) => row.sport)).size;
   return {
-    completedTournaments: complete?.n || 0,
+    completedTournaments: complete,
     registeredUsers: n.account || 0,
     organizers: n.organizer || 0,
-    sports: sports?.n || 0,
+    sports,
     teams: n.team || 0,
     matches: n.match || 0,
   };
@@ -103,7 +100,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url),
       action = url.searchParams.get("action") || "bootstrap";
     if (action === "health") {
-      await env.DB.prepare("SELECT 1").first();
+      await pingRecordStore();
       return json({ ok: true, database: true, files: !!env.BUCKET });
     }
     const u = await identity(true);
@@ -249,12 +246,8 @@ async function payload(request: Request) {
 async function limit(owner: string) {
   const bucket = Math.floor(Date.now() / 60000),
     id = "rate:" + owner + ":" + bucket;
-  const r = await env.DB.prepare(
-    "INSERT INTO records(id,kind,owner,target,data,created_at) VALUES(?,'rate',?,'',?,?) ON CONFLICT(id) DO UPDATE SET data=json_set(records.data,'$.count',json_extract(records.data,'$.count')+1) RETURNING data",
-  )
-    .bind(id, owner, JSON.stringify({ count: 1 }), new Date().toISOString())
-    .first<{ data: string }>();
-  if (r && JSON.parse(r.data).count > 90)
+  const count = await incrementRateRecord(id, owner);
+  if (count > 90)
     throw new ApiError("Juda ko‘p so‘rov. Bir daqiqa kuting.", 429);
 }
 async function handlePOST(request: Request) {
@@ -370,13 +363,10 @@ async function handlePOST(request: Request) {
         ).toISOString(),
       };
       delete result.ownerId;
-      const guarded = prev && typeof b.expectedUpdatedAt === "string";
-      const query = guarded
-        ? env.DB.prepare(
-            "UPDATE records SET data=?,target=? WHERE id=? AND json_extract(data,'$.updatedAt')=?",
-          ).bind(JSON.stringify(result), result.slug, id, b.expectedUpdatedAt)
-        : statement(id, kind, owner, result.slug, result);
-      const saved = await env.DB.batch([
+      const expectedUpdatedAt = typeof b.expectedUpdatedAt === "string" ? b.expectedUpdatedAt : undefined;
+      const guarded = !!prev && expectedUpdatedAt !== undefined;
+      const query = statement(id, kind, owner, result.slug, result, guarded ? { expectedUpdatedAt } : {});
+      const saved = await writeRecords([
         query,
         await audit(
           u.id,
@@ -387,7 +377,7 @@ async function handlePOST(request: Request) {
           !!guarded,
         ),
       ]);
-      if (guarded && !saved[0].meta.changes)
+      if (guarded && !saved[0])
         throw new ApiError("Yozuv boshqa oynada o‘zgargan. Yangilang.", 409);
       return json({ ...result, ownerId: owner });
     }
@@ -404,12 +394,8 @@ async function handlePOST(request: Request) {
       if (r.kind === "account" || r.kind === "settings" || r.kind === "audit")
         throw new ApiError("Bu yozuvni bu yerdan o‘chirib bo‘lmaydi");
       if (action === "entity-delete" && r.kind === "media") {
-        const used = await env.DB.prepare(
-          "SELECT count(*) AS n FROM records WHERE kind IN ('tournament','organizer','athlete','team','ad','sponsor','settings','profile') AND json_extract(data,'$.deletedAt') IS NULL AND data LIKE ?",
-        )
-          .bind("%/api/files/" + r.id + "%")
-          .first<{ n: number }>();
-        if (used?.n)
+        const used = (await listRecords()).some((row) => ["tournament","organizer","athlete","team","ad","sponsor","settings","profile"].includes(row.kind) && !JSON.parse(row.data).deletedAt && row.data.includes("/api/files/" + r.id));
+        if (used)
           throw new ApiError(
             "Bu rasm saytda ishlatilmoqda. Avval tegishli yozuvdagi rasmni almashtiring.",
             409,
@@ -430,7 +416,7 @@ async function handlePOST(request: Request) {
         deletedAt: action === "entity-delete" ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString(),
       };
-      await env.DB.batch([
+      await writeRecords([
         statement(r.id, r.kind, r.ownerId, r.target || r.slug || "", next),
         await audit(u.id, action, r.id, r, next),
       ]);
@@ -455,7 +441,7 @@ async function handlePOST(request: Request) {
       const old = await find(id);
       const athleteId = "athlete:" + u.id;
       const a = await find(athleteId);
-      await env.DB.batch([
+      await writeRecords([
         statement(id, "profile", u.id, "", {
           ...old,
           ...p,
@@ -543,20 +529,8 @@ async function handlePOST(request: Request) {
         img: t.img,
         updatedAt: new Date().toISOString(),
       };
-      const res = await env.DB.prepare(
-        "INSERT INTO records(id,kind,owner,target,data,created_at) SELECT ?,'registration',?,?,?,? WHERE (SELECT count(*) FROM records WHERE kind='registration' AND target=? AND json_extract(data,'$.deletedAt') IS NULL AND json_extract(data,'$.status') NOT IN ('cancelled','rejected')) < ? ON CONFLICT(id) DO UPDATE SET data=excluded.data WHERE json_extract(records.data,'$.status') IN ('cancelled','rejected')",
-      )
-        .bind(
-          id,
-          u.id,
-          t.slug,
-          JSON.stringify(r),
-          new Date().toISOString(),
-          t.slug,
-          t.capacity,
-        )
-        .run();
-      if (!res.meta.changes)
+      const created = await createRegistrationIfAvailable({id,kind:"registration",owner:u.id,target:t.slug,data:JSON.stringify(r),created_at:new Date().toISOString()}, t.capacity);
+      if (!created)
         throw new ApiError(
           "Bo‘sh o‘rin qolmagan yoki ariza avval yuborilgan",
           409,
@@ -581,7 +555,7 @@ async function handlePOST(request: Request) {
           throw new ApiError("Haqiqiy to‘lov tasdiqlanmagan", 409);
       }
       const next = { ...r, status, updatedAt: new Date().toISOString() };
-      await env.DB.batch([
+      await writeRecords([
         statement(r.id, "registration", r.ownerId, r.slug, next),
         await audit(u.id, action, r.id, r, next),
       ]);
@@ -617,7 +591,7 @@ async function handlePOST(request: Request) {
         status: "pending",
         updatedAt: new Date().toISOString(),
       };
-      await env.DB.batch([
+      await writeRecords([
         statement(id, "review", u.id, p.target, r),
         await audit(
           u.id,
@@ -664,7 +638,7 @@ async function handlePOST(request: Request) {
       if (u.role !== "admin" && original.recipientId !== u.id)
         throw new ApiError("Ruxsat yo‘q", 403);
       const id = crypto.randomUUID();
-      await env.DB.batch([
+      await writeRecords([
         statement(id, "message", u.id, original.ownerId, {
           text: p.text,
           senderName: u.name,
@@ -731,7 +705,7 @@ async function handlePOST(request: Request) {
           (away?.kind === "athlete" ? [away.id] : []),
         updatedAt: new Date().toISOString(),
       };
-      await env.DB.batch([
+      await writeRecords([
         statement(id, "match", t.ownerId, p.slug, r),
         await audit(u.id, prev ? "update-match" : "create-match", id, prev, r),
       ]);
@@ -783,7 +757,7 @@ async function handlePOST(request: Request) {
           bye: regs.length % 2 ? regs.at(-1)?.team : null,
         }),
       );
-      await env.DB.batch(queries);
+      await writeRecords(queries);
       return json({
         created: Math.floor(regs.length / 2),
         bye: regs.length % 2 ? regs.at(-1)?.team : null,
@@ -798,17 +772,7 @@ async function handlePOST(request: Request) {
         throw new ApiError("Reklama faol emas", 404);
       const day = new Date().toISOString().slice(0, 10);
       const eventId = "ad-event:" + id + ":" + event + ":" + u.id + ":" + day;
-      await env.DB.prepare(
-        "INSERT OR IGNORE INTO records(id,kind,owner,target,data,created_at) VALUES(?,'ad-event',?,?,?,?)",
-      )
-        .bind(
-          eventId,
-          u.id,
-          id,
-          JSON.stringify({ event, day }),
-          new Date().toISOString(),
-        )
-        .run();
+      await writeRecords([statement(eventId,"ad-event",u.id,id,{event,day},{insertOnly:true})]);
       return json({ ok: true });
     }
     if (action === "delete-account") {

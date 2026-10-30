@@ -1,6 +1,6 @@
 # KiGo — sport platformasi va admin panel
 
-Claude maketining navy/yashil vizual uslubi asosida ishlaydigan React/Vinext sayti. Mahsulot sahifalaridagi namunaviy turnirlar, sportchilar, tashkilotchilar, izohlar, reklama va hisoblagichlar olib tashlangan. Ma’lumotlar D1 bazadan o‘qiladi. Rasm va ikonka sifatlari yangilangan; asl dizayn HTML fayllari faqat `reference/` arxivida saqlangan.
+Claude maketining navy/yashil vizual uslubi asosida ishlaydigan React/Vinext sayti. Mahsulot sahifalaridagi namunaviy turnirlar, sportchilar, tashkilotchilar, izohlar, reklama va hisoblagichlar olib tashlangan. Vercel production ma’lumotlari MongoDB’da, mahalliy/Cloudflare development esa D1’da saqlanadi. Rasm va ikonka sifatlari yangilangan; asl dizayn HTML fayllari faqat `reference/` arxivida saqlangan.
 
 ## Ishga tushirish
 
@@ -13,7 +13,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 npm run dev -- --host 127.0.0.1 --port 3000
 ```
 
-Migratsiyani faqat yangi mahalliy bazaga bir marta qo‘llang. Production bazasidagi mavjud yozuvlar saqlanadi. Mahalliy test bazasi va production D1 alohida. Mahalliy namuna ma’lumotlari uchun `drizzle/local-demo.sql` faylini `--local` bilan qo‘llang; production bazasiga ishlatmang.
+Migratsiyani faqat yangi mahalliy bazaga bir marta qo‘llang. Mahalliy D1 va Vercel MongoDB alohida. Mahalliy namuna ma’lumotlari uchun `drizzle/local-demo.sql` faylini `--local` bilan qo‘llang; production bazasiga ishlatmang.
 
 ## Login, sign-up va admin
 
@@ -35,11 +35,12 @@ Vercel build Nitro adapteri orqali `.vercel/output` serverless deployment yarata
 
 Vercel Project Settings → Environment Variables’da quyidagilarni kiriting:
 
-- `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`: Turso/libSQL SQLite database ulanishi.
+- `MONGODB_URI`: MongoDB Atlas connection string. Parol ichidagi maxsus belgilar URI-encode qilingan bo‘lsin; bu qiymatni GitHub yoki chatga yubormang.
+- `MONGODB_DB`: ixtiyoriy database nomi; berilmasa `kigo` ishlatiladi.
 - `R2_ENDPOINT`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; ixtiyoriy `R2_REGION` (odatda `auto`): R2 S3-compatible fayl saqlash ulanishi.
 - `KIGO_ADMIN_EMAILS`, `KIGO_PUBLIC_ORIGIN`; Google login uchun `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 
-Turso bazasida `drizzle/0000_chunky_titania.sql` migratsiyasini bir marta bajaring. Cloudflare D1’dagi mavjud foydalanuvchi va turnir ma’lumotlari Turso’ga avtomatik ko‘chmaydi; deploydan oldin alohida eksport/import qiling. Sozlamalarni saqlagach Redeploy qiling.
+MongoDB’da yangi database va `records` collection birinchi so‘rovda yaratiladi, kerakli indekslar avtomatik qo‘shiladi. Cloudflare D1’dagi mavjud foydalanuvchi va turnir ma’lumotlari MongoDB’ga avtomatik ko‘chmaydi; kerak bo‘lsa alohida eksport/import qiling. Atlas Network Access va Database User ruxsatlari sozlangan bo‘lsin. Sozlamalarni saqlagach Redeploy qiling.
 
 # Kigo_china
 
@@ -94,10 +95,10 @@ npm run build
 
 `test-domain.mjs`: haqiqiy SQLite xotira bazasida API biznes mantiqi; test chegarasida faqat identity/Worker muhitlari almashtiriladi. Productionga yozmaydi. `test-api.mjs`: faqat localhost; header spoof, login/admin API, sahifalar, 404 va QR tekshiruvlari. Avvalgi lokal QA yozuvlari qayta tiklanadigan arxivga o‘tkaziladi. Production bazasida bu testni ishlatmang.
 
-`app/api/kigo/route.ts`: oddiy foydalanuvchi va tashkilotchi amallari. `app/api/admin/route.ts`: admin o‘qish va moderatsiya. `lib/kigo-store.ts`: schema validatsiyasi, server huquqlari, umumiy baza funksiyalari va reyting. `db/schema.ts`/`drizzle/`: D1 sxemasi. `components/portal.tsx`: real frontend. `components/admin-panel.tsx`: admin UI. `components/entity-editor.tsx`: yaratish/tahrirlash formalari.
+`app/api/kigo/route.ts`: oddiy foydalanuvchi va tashkilotchi amallari. `app/api/admin/route.ts`: admin o‘qish va moderatsiya. `lib/record-store.ts`: MongoDB va mahalliy D1 adapteri. `lib/kigo-store.ts`: schema validatsiyasi, server huquqlari, umumiy baza funksiyalari va reyting. `db/schema.ts`/`drizzle/`: D1 sxemasi. `components/portal.tsx`: real frontend. `components/admin-panel.tsx`: admin UI. `components/entity-editor.tsx`: yaratish/tahrirlash formalari.
 
 ## Mobil va saqlash
 
 Telefonlar uchun pastki navigatsiya, safe-area, moslashuvchan formalar, pastdan ochiladigan modal va o‘qilishi yaxshilangan kartalar qo‘shildi. Chrome 402 px emulyatorda profil formasi tekshirildi; haqiqiy qurilma sinovi alohida kerak.
 
-[Zaxira va tiklash tartibi](BACKUP_RECOVERY.md): D1 + R2, avtomatik va qo‘lda nusxa, yuklash, faqat egaga ruxsatli tiklash. Auth testlari haqiqiy imzolangan JWT va mock provider tarmog‘i bilan ishlaydi; real Google OAuth hisobi bilan yakuniy test uchun kalitlar zarur.
+[Zaxira va tiklash tartibi](BACKUP_RECOVERY.md): MongoDB + R2, avtomatik va qo‘lda nusxa, yuklash, faqat egaga ruxsatli tiklash. Auth testlari haqiqiy imzolangan JWT va mock provider tarmog‘i bilan ishlaydi; real Google OAuth hisobi bilan yakuniy test uchun kalitlar zarur.

@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { getAppUser } from "@/lib/app-auth";
 import { z } from "zod";
+import { findRecord, listRecords, recordWrite, writeRecords, type RecordWrite } from "@/lib/record-store";
 export type Entity = Record<string, any>;
 export type Row = {
   id: string;
@@ -30,19 +31,15 @@ export async function list(
   owner?: string,
   archived = false,
 ): Promise<Entity[]> {
-  const r = await env.DB.prepare(
-    "SELECT * FROM records WHERE kind=?" +
-      (owner ? " AND owner=?" : "") +
-      " ORDER BY created_at DESC LIMIT 2000",
-  )
-    .bind(...(owner ? [kind, owner] : [kind]))
-    .all<Row>();
-  return r.results.map(decode).filter((x) => archived || !x.deletedAt);
+  return (await listRecords(kind))
+    .filter((row) => !owner || row.owner === owner)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 2000)
+    .map(decode)
+    .filter((x) => archived || !x.deletedAt);
 }
 export async function find(id: string) {
-  const r = await env.DB.prepare("SELECT * FROM records WHERE id=?")
-    .bind(id)
-    .first<Row>();
+  const r = await findRecord(id);
   return r ? decode(r) : null;
 }
 export function statement(
@@ -51,17 +48,9 @@ export function statement(
   owner: string,
   target: string,
   data: Entity,
-) {
-  return env.DB.prepare(
-    "INSERT INTO records(id,kind,owner,target,data,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,target=excluded.target",
-  ).bind(
-    id,
-    kind,
-    owner,
-    target,
-    JSON.stringify(data),
-    new Date().toISOString(),
-  );
+  options: Omit<RecordWrite, "record"> = {},
+): RecordWrite {
+  return recordWrite(id, kind, owner, target, data, options);
 }
 export async function put(
   id: string,
@@ -70,7 +59,7 @@ export async function put(
   target: string,
   data: Entity,
 ) {
-  await statement(id, kind, owner, target, data).run();
+  await writeRecords([statement(id, kind, owner, target, data)]);
 }
 export function clean(e: Entity): Entity {
   const { ownerId, kind, ...rest } = e;
@@ -148,15 +137,7 @@ export async function audit(
     at: new Date().toISOString(),
   };
   if (onlyIfChanged)
-    return env.DB.prepare(
-      "INSERT INTO records(id,kind,owner,target,data,created_at) SELECT ?,'audit',?,?,?,? WHERE changes()>0",
-    ).bind(
-      id,
-      userId,
-      entityId,
-      JSON.stringify(payload),
-      new Date().toISOString(),
-    );
+    return recordWrite(id, "audit", userId, entityId, payload, { onlyIfChanged: true });
   return statement(id, "audit", userId, entityId, payload);
 }
 export function safeImage(s: string) {

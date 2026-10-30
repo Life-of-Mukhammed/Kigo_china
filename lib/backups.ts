@@ -1,27 +1,109 @@
-import {env} from 'cloudflare:workers';
-import {ApiError,find,statement,audit,type Row} from '@/lib/kigo-store';
-import {digest} from '@/lib/auth-crypto';
-import hosting from '@/.openai/hosting.json';
-const MAX_BYTES=10*1024*1024;
-const EXCLUDED=['auth-session','auth-attempt','rate','backup','system'];
-export type Snapshot={version:1;projectId:string;createdAt:string;recordCount:number;checksum:string;records:Row[]};
-export async function createBackup(owner:string,reason='manual'){
- const usage=await env.DB.prepare("SELECT count(*) AS n, sum(length(CAST(data AS BLOB))+length(id)+length(owner)+length(target)+100) AS bytes FROM records WHERE kind NOT IN ('auth-session','auth-attempt','rate','backup','system')").first<{n:number;bytes:number}>();
- if((usage?.n||0)>25000||(usage?.bytes||0)>MAX_BYTES)throw new ApiError('Zaxira hajmi chegaradan oshdi. Bazani operator orqali eksport qiling.',413);
- // One SELECT gives the snapshot a single consistent SQLite read point.
- const result=await env.DB.prepare("SELECT id,kind,owner,target,data,created_at FROM records WHERE kind NOT IN ('auth-session','auth-attempt','rate','backup','system') ORDER BY id LIMIT 25001").all<Row>();
- const records=result.results;if(records.length>25000||new TextEncoder().encode(JSON.stringify(records)).byteLength>MAX_BYTES)throw new ApiError('Zaxira hajmi chegaradan oshdi.',413);
- const createdAt=new Date().toISOString(),id=crypto.randomUUID();const checksum=await digest(JSON.stringify(records));const snapshot:Snapshot={version:1,projectId:hosting.project_id,createdAt,recordCount:records.length,checksum,records};const content=JSON.stringify(snapshot);const key='backups/v1/'+createdAt.slice(0,10)+'/'+id+'.json';await env.BUCKET.put(key,content,{httpMetadata:{contentType:'application/json'},customMetadata:{checksum,reason}});const data={name:'KiGo '+createdAt,key,reason,recordCount:records.length,checksum,size:new TextEncoder().encode(content).byteLength,createdAt,projectId:hosting.project_id};await env.DB.batch([statement(id,'backup',owner,'',data),await audit(owner,'create-backup',id,null,{reason,recordCount:records.length,checksum})]);return{id,...data};
+import { env } from "cloudflare:workers";
+import { ApiError, find, statement, audit, type Row } from "@/lib/kigo-store";
+import { claimLease, listRecords, recordWrite, writeRecords } from "@/lib/record-store";
+import { digest } from "@/lib/auth-crypto";
+import hosting from "@/.openai/hosting.json";
+
+const MAX_BYTES = 10 * 1024 * 1024;
+const EXCLUDED = ["auth-session", "auth-attempt", "rate", "backup", "system"];
+export type Snapshot = { version: 1; projectId: string; createdAt: string; recordCount: number; checksum: string; records: Row[] };
+
+export async function createBackup(owner: string, reason = "manual") {
+  const all = await listRecords();
+  const records = all.filter((record) => !EXCLUDED.includes(record.kind));
+  const bytes = records.reduce((total, record) => total + new TextEncoder().encode(JSON.stringify(record)).byteLength, 0);
+  if (records.length > 25000 || bytes > MAX_BYTES)
+    throw new ApiError("Zaxira hajmi chegaradan oshdi. Bazani operator orqali eksport qiling.", 413);
+  if (new TextEncoder().encode(JSON.stringify(records)).byteLength > MAX_BYTES)
+    throw new ApiError("Zaxira hajmi chegaradan oshdi.", 413);
+  const createdAt = new Date().toISOString();
+  const id = crypto.randomUUID();
+  const checksum = await digest(JSON.stringify(records));
+  const snapshot: Snapshot = { version: 1, projectId: hosting.project_id, createdAt, recordCount: records.length, checksum, records };
+  const content = JSON.stringify(snapshot);
+  const key = `backups/v1/${createdAt.slice(0, 10)}/${id}.json`;
+  await env.BUCKET.put(key, content, { httpMetadata: { contentType: "application/json" }, customMetadata: { checksum, reason } });
+  const data = { name: "KiGo " + createdAt, key, reason, recordCount: records.length, checksum, size: new TextEncoder().encode(content).byteLength, createdAt, projectId: hosting.project_id };
+  await writeRecords([statement(id, "backup", owner, "", data), await audit(owner, "create-backup", id, null, { reason, recordCount: records.length, checksum })]);
+  return { id, ...data };
 }
-export async function automaticBackup(){
- const now=Date.now(),until=now+15*60000;const lock=await env.DB.prepare("INSERT INTO records(id,kind,owner,target,data,created_at) VALUES('backup:auto:lease','system','system','',?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data WHERE json_extract(records.data,'$.until')<? RETURNING id").bind(JSON.stringify({until}),new Date().toISOString(),now).first();if(!lock)return 'recent';
- try{const b=await createBackup('system','automatic-after-write');await statement('backup:last-status','system','system','',{ok:true,at:b.createdAt,backupId:b.id}).run();return 'created'}catch(e){await env.DB.batch([statement('backup:last-status','system','system','',{ok:false,at:new Date().toISOString(),error:'Zaxira yaratilmadi. Admin paneldan qayta urining.'}),statement('backup:auto:lease','system','system','',{until:Date.now()+60000})]);console.error('KiGo automatic backup failed');return 'failed'}
+
+export async function automaticBackup() {
+  const now = Date.now();
+  if (!(await claimLease("backup:auto:lease", now + 15 * 60000, now))) return "recent";
+  try {
+    const backup = await createBackup("system", "automatic-after-write");
+    await writeRecords([statement("backup:last-status", "system", "system", "", { ok: true, at: backup.createdAt, backupId: backup.id })]);
+    return "created";
+  } catch {
+    await writeRecords([
+      statement("backup:last-status", "system", "system", "", { ok: false, at: new Date().toISOString(), error: "Zaxira yaratilmadi. Admin paneldan qayta urining." }),
+      statement("backup:auto:lease", "system", "system", "", { until: Date.now() + 60000 }),
+    ]);
+    console.error("KiGo automatic backup failed");
+    return "failed";
+  }
 }
-export async function backupStatus(){const[last,status]=await Promise.all([env.DB.prepare("SELECT * FROM records WHERE kind='backup' ORDER BY created_at DESC LIMIT 1").first<Row>(),find('backup:last-status')]);return{last:last?{...JSON.parse(last.data),id:last.id}:null,status:status?{ok:status.ok,at:status.at,error:status.error}:null,automatic:'Yozish amallaridan keyin, faoliyat bor paytda 15 daqiqada bir',storage:'D1 + R2',permanentDelete:false}}
-export async function readSnapshot(id:string){const b=await find(id);if(!b||b.kind!=='backup'||b.deletedAt||typeof b.key!=='string'||!b.key.startsWith('backups/v1/'))throw new ApiError('Zaxira nusxa topilmadi',404);const object=await env.BUCKET.get(b.key);if(!object)throw new ApiError('Zaxira fayli topilmadi',404);if(object.size>MAX_BYTES+1024*1024)throw new ApiError('Zaxira fayli juda katta',413);const raw=await object.text();if(new TextEncoder().encode(raw).byteLength>MAX_BYTES+1024*1024)throw new ApiError('Zaxira hajmi katta',413);const s=JSON.parse(raw) as Snapshot;if(s.version!==1||s.projectId!==hosting.project_id||!Array.isArray(s.records)||s.records.length!==s.recordCount||s.recordCount>25000)throw new ApiError('Zaxira formati yoki loyiha mos emas');const checksum=await digest(JSON.stringify(s.records));if(checksum!==s.checksum||checksum!==b.checksum)throw new ApiError('Zaxira faylining yaxlitligi buzilgan',409);const ids=new Set<string>();for(const r of s.records){if(!r||typeof r.id!=='string'||r.id.length>2000||ids.has(r.id)||typeof r.kind!=='string'||EXCLUDED.includes(r.kind)||typeof r.owner!=='string'||typeof r.target!=='string'||typeof r.data!=='string'||typeof r.created_at!=='string')throw new ApiError('Zaxira yozuvi noto‘g‘ri');JSON.parse(r.data);ids.add(r.id)}return{metadata:b,snapshot:s,raw}}
-export async function restorePreview(id:string){const{snapshot}=await readSnapshot(id);const current=await env.DB.prepare("SELECT id,data FROM records WHERE kind NOT IN ('auth-session','auth-attempt','rate','backup','system')").all<{id:string;data:string}>();const records=new Map(current.results.map(r=>[r.id,r.data]));const missing=snapshot.records.filter(r=>!records.has(r.id)),changed=snapshot.records.filter(r=>records.has(r.id)&&records.get(r.id)!==r.data);return{recordCount:snapshot.recordCount,missing:missing.length,changed:changed.length,unchanged:snapshot.recordCount-missing.length-changed.length,missingIds:missing.map(r=>r.id),changedIds:changed.map(r=>r.id),createdAt:snapshot.createdAt,checksum:snapshot.checksum}}
-export async function restoreRecords(userId:string,id:string,ids:string[],mode:'missing'|'replace',safetyBackupId?:string){
- if(!ids.length||ids.length>25)throw new ApiError('Bir so‘rovda 1–25 yozuv tanlang');const{snapshot}=await readSnapshot(id);const lookup=new Map(snapshot.records.map(r=>[r.id,r]));if(new Set(ids).size!==ids.length||ids.some(id=>!lookup.has(id)))throw new ApiError('Tanlangan yozuvlar zaxirada topilmadi');
- let safety=safetyBackupId?await find(safetyBackupId):null;if(!safety||safety.kind!=='backup'||safety.reason!=='before-restore:'+id||safety.ownerId!==userId||Date.parse(safety.createdAt)<Date.now()-30*60000)safety=await createBackup(userId,'before-restore:'+id);
- const queries=ids.map(id=>{const r=lookup.get(id)!;return env.DB.prepare("INSERT INTO records(id,kind,owner,target,data,created_at) VALUES(?,?,?,?,?,?) "+(mode==='missing'?'ON CONFLICT(id) DO NOTHING':'ON CONFLICT(id) DO UPDATE SET kind=excluded.kind,owner=excluded.owner,target=excluded.target,data=excluded.data,created_at=excluded.created_at')).bind(r.id,r.kind,r.owner,r.target,r.data,r.created_at)});queries.push(await audit(userId,'restore-backup',id,null,{mode,ids,safetyBackupId:safety.id}));const results=await env.DB.batch(queries);return{restored:results.slice(0,-1).reduce((n,r)=>n+(r.meta.changes||0),0),safetyBackupId:safety.id};
+
+export async function backupStatus() {
+  const rows = await listRecords("backup");
+  const last = rows.sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+  const statusRecord = await find("backup:last-status");
+  return {
+    last: last ? { ...JSON.parse(last.data), id: last.id } : null,
+    status: statusRecord ? { ok: statusRecord.ok, at: statusRecord.at, error: statusRecord.error } : null,
+    automatic: "Yozish amallaridan keyin, faoliyat bor paytda 15 daqiqada bir",
+    storage: "MongoDB + R2",
+    permanentDelete: false,
+  };
+}
+
+export async function readSnapshot(id: string) {
+  const backup = await find(id);
+  if (!backup || backup.kind !== "backup" || backup.deletedAt || typeof backup.key !== "string" || !backup.key.startsWith("backups/v1/"))
+    throw new ApiError("Zaxira nusxa topilmadi", 404);
+  const object = await env.BUCKET.get(backup.key);
+  if (!object) throw new ApiError("Zaxira fayli topilmadi", 404);
+  if (object.size > MAX_BYTES + 1024 * 1024) throw new ApiError("Zaxira fayli juda katta", 413);
+  const raw = await object.text();
+  if (new TextEncoder().encode(raw).byteLength > MAX_BYTES + 1024 * 1024) throw new ApiError("Zaxira hajmi katta", 413);
+  const snapshot = JSON.parse(raw) as Snapshot;
+  if (snapshot.version !== 1 || snapshot.projectId !== hosting.project_id || !Array.isArray(snapshot.records) || snapshot.records.length !== snapshot.recordCount || snapshot.recordCount > 25000)
+    throw new ApiError("Zaxira formati yoki loyiha mos emas");
+  const checksum = await digest(JSON.stringify(snapshot.records));
+  if (checksum !== snapshot.checksum || checksum !== backup.checksum) throw new ApiError("Zaxira faylining yaxlitligi buzilgan", 409);
+  const ids = new Set<string>();
+  for (const record of snapshot.records) {
+    if (!record || typeof record.id !== "string" || record.id.length > 2000 || ids.has(record.id) || typeof record.kind !== "string" || EXCLUDED.includes(record.kind) || typeof record.owner !== "string" || typeof record.target !== "string" || typeof record.data !== "string" || typeof record.created_at !== "string")
+      throw new ApiError("Zaxira yozuvi noto‘g‘ri");
+    JSON.parse(record.data);
+    ids.add(record.id);
+  }
+  return { metadata: backup, snapshot, raw };
+}
+
+export async function restorePreview(id: string) {
+  const { snapshot } = await readSnapshot(id);
+  const current = await listRecords();
+  const existing = new Map(current.filter((record) => !EXCLUDED.includes(record.kind)).map((record) => [record.id, record.data]));
+  const missing = snapshot.records.filter((record) => !existing.has(record.id));
+  const changed = snapshot.records.filter((record) => existing.has(record.id) && existing.get(record.id) !== record.data);
+  return { recordCount: snapshot.recordCount, missing: missing.length, changed: changed.length, unchanged: snapshot.recordCount - missing.length - changed.length, missingIds: missing.map((record) => record.id), changedIds: changed.map((record) => record.id), createdAt: snapshot.createdAt, checksum: snapshot.checksum };
+}
+
+export async function restoreRecords(userId: string, id: string, ids: string[], mode: "missing" | "replace", safetyBackupId?: string) {
+  if (!ids.length || ids.length > 25) throw new ApiError("Bir so‘rovda 1–25 yozuv tanlang");
+  const { snapshot } = await readSnapshot(id);
+  const lookup = new Map(snapshot.records.map((record) => [record.id, record]));
+  if (new Set(ids).size !== ids.length || ids.some((recordId) => !lookup.has(recordId))) throw new ApiError("Tanlangan yozuvlar zaxirada topilmadi");
+  let safety = safetyBackupId ? await find(safetyBackupId) : null;
+  if (!safety || safety.kind !== "backup" || safety.reason !== "before-restore:" + id || safety.ownerId !== userId || Date.parse(safety.createdAt) < Date.now() - 30 * 60000)
+    safety = await createBackup(userId, "before-restore:" + id);
+  const writes = ids.map((recordId) => {
+    const record = lookup.get(recordId)!;
+    return recordWrite(record.id, record.kind, record.owner, record.target, JSON.parse(record.data), mode === "missing" ? { insertOnly: true } : { replace: true });
+  });
+  writes.push(await audit(userId, "restore-backup", id, null, { mode, ids, safetyBackupId: safety.id }));
+  const results = await writeRecords(writes);
+  return { restored: results.slice(0, -1).reduce((total, changes) => total + changes, 0), safetyBackupId: safety.id };
 }

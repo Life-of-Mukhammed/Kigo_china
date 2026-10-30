@@ -404,7 +404,7 @@ export default function AdminPanel() {
                     <b className="kp-green">Faol</b>
                   </div>
                   <div className="ka-service">
-                    <span>Ma’lumotlar bazasi · D1</span>
+                    <span>Ma’lumotlar bazasi · MongoDB</span>
                     <b className="kp-green">Faol</b>
                   </div>
                   <div className="ka-service">
