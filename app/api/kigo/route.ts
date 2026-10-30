@@ -1,5 +1,6 @@
 import {automaticBackup} from "@/lib/backups";
 import {googleReady} from "@/lib/app-auth";
+import {ensureDemoContent} from "@/lib/demo-content";
 import { z } from "zod";
 import { listRecords, writeRecords, incrementRateRecord, createRegistrationIfAvailable, pingRecordStore } from "@/lib/record-store";
 import { env } from "cloudflare:workers";
@@ -103,6 +104,7 @@ export async function GET(request: Request) {
       await pingRecordStore();
       return json({ ok: true, database: true, files: !!env.BUCKET });
     }
+    await ensureDemoContent();
     const u = await identity(true);
     const d = await data();
     if (action === "tournament") {
