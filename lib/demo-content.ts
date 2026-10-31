@@ -8,7 +8,7 @@ const addDays = (date: Date, days: number) => {
 
 export async function ensureDemoContent() {
   if (!process.env.VERCEL) return;
-  if (await findRecord("system:demo-content-v2")) return;
+  if (await findRecord("system:demo-content-v3")) return;
   const today = new Date();
   const pastStart = addDays(today, -20);
   const pastEnd = addDays(today, -19);
@@ -26,6 +26,11 @@ export async function ensureDemoContent() {
     { id: "demo-tournament-3", name: "Demo: Buxoro 3x3 basketbol", sport: "Basketbol", city: "Buxoro", address: "Markaziy sport saroyi", image: "/media/basketball.webp", format: "team", capacity: 12, price: 0, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[2].id },
     { id: "demo-tournament-4", name: "Demo: Farg‘ona padel chempionati", sport: "Padel", city: "Farg‘ona", address: "Yangi hayot padel korti", image: "/media/padel.webp", format: "team", capacity: 16, price: 50000, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[3].id },
     { id: "demo-tournament-5", name: "Demo: Andijon voleybol ligasi", sport: "Voleybol", city: "Andijon", address: "Bobur sport majmuasi", image: "/media/volleyball.webp", format: "team", capacity: 10, price: 0, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[4].id },
+    { id: "demo-tournament-6", name: "Demo: Toshkent tennis bahor kubogi", sport: "Tennis", city: "Toshkent", address: "Yunusobod tennis markazi", image: "/media/tennis.webp", format: "solo", capacity: 24, price: 30000, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[1].id },
+    { id: "demo-tournament-7", name: "Demo: Samarqand mini-futbol turniri", sport: "Futbol", city: "Samarqand", address: "Dinamo sport maydoni", image: "/media/football.webp", format: "team", capacity: 12, price: 20000, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[0].id },
+    { id: "demo-tournament-8", name: "Demo: Buxoro voleybol kubogi", sport: "Voleybol", city: "Buxoro", address: "Buxoro sport majmuasi", image: "/media/volleyball.webp", format: "team", capacity: 8, price: 0, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[4].id },
+    { id: "demo-tournament-9", name: "Demo: Farg‘ona basketbol 3x3", sport: "Basketbol", city: "Farg‘ona", address: "Istiqlol sport markazi", image: "/media/basketball.webp", format: "team", capacity: 12, price: 15000, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[2].id },
+    { id: "demo-tournament-10", name: "Demo: Andijon padel ochiq turniri", sport: "Padel", city: "Andijon", address: "Andijon padel klubi", image: "/media/padel.webp", format: "team", capacity: 16, price: 25000, prize: "Demo sovrin jamg‘armasi", organizerId: organizers[3].id },
   ];
   const reviews = organizers.map((organizer, index) => ({
     id: `demo-review-${index + 1}`,
@@ -42,7 +47,7 @@ export async function ensureDemoContent() {
       updatedAt: today.toISOString(),
     },
   }));
-  const sports = ["Futbol", "Tennis", "Basketbol", "Padel", "Voleybol"];
+  const sports = tournaments.map((tournament) => tournament.sport);
   const images = ["football", "tennis", "basketball", "padel", "volleyball"];
   const writes = [
     ...organizers.map((organizer) => recordWrite(
@@ -62,11 +67,11 @@ export async function ensureDemoContent() {
         ...tournament,
         img: tournament.image,
         description: "Demo turnir — namunaviy sahifa ma’lumoti.",
-        startDate: pastStart,
-        endDate: pastEnd,
-        registrationDeadline: addDays(today, -21),
+        startDate: index < 5 ? pastStart : addDays(today, 7 + (index - 5) * 7),
+        endDate: index < 5 ? pastEnd : addDays(today, 8 + (index - 5) * 7),
+        registrationDeadline: index < 5 ? addDays(today, -21) : addDays(today, 5 + (index - 5) * 7),
         rules: "Demo ma’lumoti.",
-        status: "tugagan",
+        status: index < 5 ? "tugagan" : "ochiq",
         demo: true,
         slug: `demo-${sports[index].toLowerCase()}-${index + 1}`,
       },
@@ -97,5 +102,5 @@ export async function ensureDemoContent() {
   ];
   await Promise.all(writes.map((write) => writeRecords([write])));
   await Promise.all([2, 3, 4, 5].map((number) => removeRecord(`demo-ad-${number}`, "ad")));
-  await writeRecords([recordWrite("system:demo-content-v2", "system", "system", "", { version: 2 })]);
+  await writeRecords([recordWrite("system:demo-content-v3", "system", "system", "", { version: 3 })]);
 }

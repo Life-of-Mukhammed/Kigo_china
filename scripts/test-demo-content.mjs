@@ -59,11 +59,18 @@ for (let i = 1; i <= 5; i++) {
   const id = `demo-ad-${i}`;
   records.set(id, { id, kind: "ad", data: JSON.stringify({ demo: true }) });
 }
-records.set("system:demo-content-v1", { id: "system:demo-content-v1", kind: "system", data: "{}" });
+records.set("system:demo-content-v2", { id: "system:demo-content-v2", kind: "system", data: "{}" });
+for (let i = 1; i <= 5; i++) {
+  records.set(`demo-tournament-${i}`, {
+    id: `demo-tournament-${i}`,
+    kind: "tournament",
+    data: JSON.stringify({ status: "tugagan", demo: true, img: "/media/football.webp" }),
+  });
+}
 await ensureDemoContent();
 
 const ofKind = (kind) => [...records.values()].filter((row) => row.kind === kind);
-assert.equal(ofKind("tournament").length, 5);
+assert.equal(ofKind("tournament").length, 10);
 assert.equal(ofKind("organizer").length, 5);
 assert.equal(ofKind("review").length, 5);
 assert.equal(ofKind("ad").length, 1);
@@ -71,10 +78,12 @@ assert.equal(JSON.parse(records.get("demo-ad-1").data).demo, true);
 assert.ok([2, 3, 4, 5].every((i) => !records.has(`demo-ad-${i}`)));
 for (const row of ofKind("tournament")) {
   const tournament = JSON.parse(row.data);
-  assert.equal(tournament.status, "tugagan");
+  assert.ok(["tugagan", "ochiq"].includes(tournament.status));
   assert.match(tournament.img, /^\/media\//);
   assert.equal(tournament.demo, true);
 }
+assert.equal(ofKind("tournament").filter((row) => JSON.parse(row.data).status === "tugagan").length, 5);
+assert.equal(ofKind("tournament").filter((row) => JSON.parse(row.data).status === "ochiq").length, 5);
 for (const row of ofKind("review")) {
   const review = JSON.parse(row.data);
   assert.equal(review.demo, true);
@@ -86,4 +95,4 @@ const stableWrites = writeCount;
 await ensureDemoContent();
 assert.equal(records.size, stableCount, "seeding must be idempotent");
 assert.equal(writeCount, stableWrites, "completed seed must not write on every request");
-console.log("PASS: production seed is one-time, Vercel-only, five tournaments/organizers/demo reviews, one ad; demos excluded locally and labeled.");
+console.log("PASS: production seed adds five upcoming tournaments to the existing five, is idempotent and Vercel-only; one ad, five organizers/reviews; demos are excluded locally and labeled.");
