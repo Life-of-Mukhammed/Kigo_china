@@ -1,11 +1,11 @@
 export const languageList = [
   ["uz", "O‘zbekcha", "ltr"],
   ["kk", "Қазақша", "ltr"],
-  ["ky", "Кыргызча", "ltr"],
   ["tg", "Тоҷикӣ", "ltr"],
-  ["tk", "Türkmençe", "ltr"],
+  ["ky", "Кыргызча", "ltr"],
   ["az", "Azərbaycanca", "ltr"],
   ["tr", "Türkçe", "ltr"],
+  ["tk", "Türkmençe", "ltr"],
   ["ar", "العربية", "rtl"],
   ["fa", "فارسی", "rtl"],
   ["ur", "اردو", "rtl"],
