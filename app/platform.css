@@ -91,6 +91,28 @@ body {
   align-items: center;
   gap: 10px;
 }
+.kp-language-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #dce7f1;
+  font-size: 13px;
+}
+.kp-language-select {
+  max-width: 132px;
+  min-height: 38px;
+  padding: 4px 24px 4px 8px;
+  color: #fff;
+  border: 1px solid #ffffff30;
+  border-radius: 9px;
+  background: #ffffff0b;
+  font-size: 12px;
+}
+.kp-language-select option {
+  color: #102033;
+  background: #fff;
+}
 .kp-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -2450,6 +2472,16 @@ body {
   }
   .kp-header-actions {
     gap: 3px;
+  }
+  .kp-language-select {
+    max-width: 88px;
+    min-height: 34px;
+    padding-inline: 5px 18px;
+    font-size: 10px;
+  }
+  .kp-language-label {
+    gap: 2px;
+    font-size: 11px;
   }
   .kp-header-actions > .kp-btn {
     font-size: 10px;

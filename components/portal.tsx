@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -24,6 +24,9 @@ import {
   LayoutDashboard,
 } from "./icons";
 import EntityEditor, { requestApi, ImagePicker, type E } from "./entity-editor";
+import { languageDirection, languageList, translate, type Language } from "@/lib/i18n";
+const LocaleContext = createContext<Language>("uz");
+const useLanguage = () => useContext(LocaleContext);
 export const money = (n: number) =>
   n ? new Intl.NumberFormat("uz-UZ").format(n) + " so‘m" : "Bepul";
 export const statusName = (s: string) =>
@@ -111,6 +114,7 @@ function SafePhoto({
   );
 }
 export function Ad({ ad, className = "" }: { ad: E; className?: string }) {
+  const language = useLanguage();
   const ref = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -142,11 +146,11 @@ export function Ad({ ad, className = "" }: { ad: E; className?: string }) {
     >
       <SafePhoto src={ad.image} alt={ad.title} />
       <div>
-        <span className="kp-eyebrow">Reklama</span>
+        <span className="kp-eyebrow">{translate("Reklama", language)}</span>
         <h2>{ad.title}</h2>
         <p>{ad.subtitle}</p>
         <span className="kp-btn white">
-          {ad.buttonLabel || "Batafsil"} <ArrowRight size={16} />
+          {ad.buttonLabel || translate("Batafsil", language)} <ArrowRight size={16} />
         </span>
       </div>
     </Link>
@@ -163,14 +167,15 @@ function Empty({
   action?: string;
   href?: string;
 }) {
+  const language = useLanguage();
   return (
     <div className="kp-empty">
       <Trophy size={34} />
-      <h3>{title}</h3>
-      {text && <p>{text}</p>}
+      <h3>{translate(title, language)}</h3>
+      {text && <p>{translate(text, language)}</p>}
       {action && href && (
         <Link className="kp-btn" href={href}>
-          {action}
+          {translate(action, language)}
           <ArrowRight size={16} />
         </Link>
       )}
@@ -178,6 +183,7 @@ function Empty({
   );
 }
 export function TournamentCard({ t }: { t: E }) {
+  const language = useLanguage();
   return (
     <Link href={"/turnirlar/" + t.slug} className="kp-tour-card">
       <div className="kp-card-image">
@@ -185,10 +191,10 @@ export function TournamentCard({ t }: { t: E }) {
         <div className="kp-tags">
           <span>{t.sport}</span>
           <span className={t.price ? "paid" : "free"}>
-            {t.price ? "Pullik" : "Bepul"}
+            {translate(t.price ? "Pullik" : "Bepul", language)}
           </span>
         </div>
-        {t.status === "jonli" && <span className="kp-live">● Jonli</span>}
+        {t.status === "jonli" && <span className="kp-live">● {translate("Jonli", language)}</span>}
       </div>
       <div className="kp-card-body">
         <h3>{t.name}</h3>
@@ -198,7 +204,7 @@ export function TournamentCard({ t }: { t: E }) {
         </p>
         <p>
           <CalendarDays size={15} />
-          {t.date || "Sana belgilanmagan"}
+          {t.date || translate("Sana belgilanmagan", language)}
         </p>
         <strong className="kp-green">{money(t.price)}</strong>
         <div className="kp-card-bottom">
@@ -237,7 +243,23 @@ export default function Portal({
     [q, setQ] = useState(""),
     [search, setSearch] = useState(false),
     [editor, setEditor] = useState<E | null>(null),
-    [profileTab, setProfileTab] = useState("applications");
+    [profileTab, setProfileTab] = useState("applications"),
+    [language, setLanguage] = useState<Language>("uz"),
+    [languageReady, setLanguageReady] = useState(false);
+  const label = (text: string) => translate(text, language);
+  useEffect(() => {
+    const saved = window.localStorage.getItem("kigo-language") as Language | null;
+    // Restore the browser's saved language after hydration to avoid server/client markup mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved && languageList.some(([code]) => code === saved)) setLanguage(saved);
+    setLanguageReady(true);
+  }, []);
+  useEffect(() => {
+    if (!languageReady) return;
+    document.documentElement.lang = language;
+    document.documentElement.dir = languageDirection(language);
+    window.localStorage.setItem("kigo-language", language);
+  }, [language, languageReady]);
   const mounted = useRef(true);
   const reload = useCallback(async () => {
     const r = await fetch("/api/kigo?action=bootstrap", { cache: "no-store" });
@@ -315,11 +337,17 @@ export default function Portal({
         <nav className="kp-nav" aria-label="Asosiy navigatsiya">
           {nav.map(([href, label]) => (
             <Link className={path === href ? "active" : ""} key={href} href={href}>
-              {label}
+              {translate(label, language)}
             </Link>
           ))}
         </nav>
         <div className="kp-header-actions">
+          <label className="kp-language-label">
+            <span aria-hidden="true">文</span>
+            <select className="kp-language-select" value={language} aria-label="Tilni tanlang" onChange={(event) => setLanguage(event.target.value as Language)}>
+              {languageList.map(([code, nativeName]) => <option key={code} value={code}>{nativeName}</option>)}
+            </select>
+          </label>
           <button
             className="kp-icon-btn"
             aria-label="Qidirish"
@@ -333,11 +361,11 @@ export default function Portal({
             </Link>
           ) : (
             <Link className="kp-btn outline small" href="/login">
-              Sign in
+              {label("Sign in")}
             </Link>
           )}
           <Link href="/turnir-yaratish" className="kp-btn small kp-create-link">
-            Turnir o‘tkazish
+            {label("Turnir o‘tkazish")}
           </Link>
           <button
             className="kp-icon-btn kp-burger"
@@ -353,11 +381,11 @@ export default function Portal({
         <nav className="kp-mobile-nav">
           {nav.map(([href, label]) => (
             <Link href={href} key={href}>
-              {label}
+              {translate(label, language)}
             </Link>
           ))}
-          <Link href="/turnir-yaratish">Turnir yaratish</Link>
-          <Link href="/profil">Shaxsiy kabinet</Link>
+          <Link href="/turnir-yaratish">{label("Turnir yaratish")}</Link>
+          <Link href="/profil">{label("Shaxsiy kabinet")}</Link>
           {user?.role === "admin" && <Link href="/admin">Admin panel</Link>}
         </nav>
       )}
@@ -365,7 +393,7 @@ export default function Portal({
   );
   if (loading)
     return (
-      <div className="kp-app">
+      <div className="kp-app" lang={language} dir={languageDirection(language)}>
         {header}
         <div className="kp-loading kp-container">
           <div className="kp-skeleton hero" />
@@ -380,7 +408,7 @@ export default function Portal({
     );
   if (!d)
     return (
-      <div className="kp-app">
+      <div className="kp-app" lang={language} dir={languageDirection(language)}>
         {header}
         <main className="kp-container kp-page">
           <div className="kp-alert error" role="alert">
@@ -397,7 +425,7 @@ export default function Portal({
             }}
           >
             <RefreshCw size={16} />
-            Qayta yuklash
+            {label("Qayta yuklash")}
           </button>
         </main>
       </div>
@@ -406,10 +434,10 @@ export default function Portal({
     <div className="kp-page-heading">
       <div>
         <Link className="kp-breadcrumb" href="/">
-          Bosh sahifa <ChevronRight size={13} />
+          {label("Bosh sahifa")} <ChevronRight size={13} />
         </Link>
-        <h1>{title}</h1>
-        {sub && <p>{sub}</p>}
+        <h1>{label(title)}</h1>
+        {sub && <p>{label(sub)}</p>}
       </div>
     </div>
   );
@@ -516,11 +544,11 @@ export default function Portal({
         <section className="kp-container kp-section">
           <div className="kp-section-title">
             <div>
-              <h2>Yaqin turnirlar</h2>
-              <p>Ro‘yxatdan o‘tish ochiq bo‘lgan musobaqalar</p>
+              <h2>{label("Yaqin turnirlar")}</h2>
+              <p>{label("Ro‘yxatdan o‘tish ochiq bo‘lgan musobaqalar")}</p>
             </div>
             <Link className="kp-more" href="/turnirlar">
-              Barchasini ko‘rish <ArrowRight size={16} />
+              {label("Barchasini ko‘rish")} <ArrowRight size={16} />
             </Link>
           </div>
           {cardList(
@@ -541,9 +569,9 @@ export default function Portal({
           ))}
         <section className="kp-container kp-section kp-grid two">
           <div className="kp-panel">
-            <h2>Nega KiGo?</h2>
+            <h2>{label("Nega KiGo?")}</h2>
             <p className="kp-muted">
-              Sport musobaqasining barcha bosqichlari bir joyda.
+              {label("Sport musobaqasining barcha bosqichlari bir joyda.")}
             </p>
             <div className="kp-feature-grid">
               {([
@@ -671,8 +699,8 @@ export default function Portal({
           <div className="kp-final-cta">
             <Trophy size={46} />
             <div>
-              <h2>Turnir tashkil qilmoqchimisiz?</h2>
-              <p>Musobaqangizni yarating va boshqarishni boshlang.</p>
+              <h2>{label("Turnir tashkil qilmoqchimisiz?")}</h2>
+              <p>{label("Musobaqangizni yarating va boshqarishni boshlang.")}</p>
             </div>
             <Link className="kp-btn" href="/turnir-yaratish">
               Turnir yaratish <ArrowRight size={17} />
@@ -1301,7 +1329,8 @@ export default function Portal({
       </main>
     );
   return (
-    <div className="kp-app">
+    <LocaleContext.Provider value={language}>
+    <div className="kp-app" lang={language} dir={languageDirection(language)}>
       {header}
       {error && (
         <div className="kp-container">
@@ -1327,22 +1356,22 @@ export default function Portal({
             <p>{settings.tagline}</p>
           </div>
           <div>
-            <h3>Platforma</h3>
-            {nav.slice(1).map(([href, label]) => (
+            <h3>{label("Platforma")}</h3>
+            {nav.slice(1).map(([href, text]) => (
               <Link href={href} key={href}>
-                {label}
+                {translate(text, language)}
               </Link>
             ))}
           </div>
           <div>
-            <h3>Foydali</h3>
+            <h3>{label("Foydali")}</h3>
             <Link href="/hamkorlik">Reklama va hamkorlik</Link>
             <Link href="/natijalar">Natijalar</Link>
             <Link href="/shartlar">Shartlar va maxfiylik</Link>
             {user?.role === "admin" && <Link href="/admin">Admin panel</Link>}
           </div>
           <div>
-            <h3>Bog‘lanish</h3>
+            <h3>{label("Bog‘lanish")}</h3>
             {settings.contactEmail && (
               <Link href={"mailto:" + settings.contactEmail}>
                 {settings.contactEmail}
@@ -1376,10 +1405,10 @@ export default function Portal({
         </div>
         <div className="kp-container kp-footer-bottom">
           © {new Date().getFullYear()} {settings.name}. Barcha huquqlar
-          himoyalangan.<span>O‘zbekcha</span>
+          himoyalangan.<span>{languageList.find(([code]) => code === language)?.[1]}</span>
         </div>
       </footer>
-      <nav className="kp-bottom-nav" aria-label="Telefon navigatsiyasi">{([ ["/", "Bosh sahifa", LayoutDashboard], ["/turnirlar", "Turnirlar", Trophy], ["/sportchilar", "Sportchilar", Users], ["/profil", "Kabinet", ShieldCheck], ...(user?.role === "admin" ? [["/admin", "Admin", Settings]] : []) ] as [string, string, typeof LayoutDashboard][]).map(([href, label, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={21}/><span>{label}</span></Link>)}</nav>
+      <nav className="kp-bottom-nav" aria-label="Telefon navigatsiyasi">{([ ["/", "Bosh sahifa", LayoutDashboard], ["/turnirlar", "Turnirlar", Trophy], ["/sportchilar", "Sportchilar", Users], ["/profil", "Kabinet", ShieldCheck], ...(user?.role === "admin" ? [["/admin", "Admin", Settings]] : []) ] as [string, string, typeof LayoutDashboard][]).map(([href, text, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={21}/><span>{translate(text, language)}</span></Link>)}</nav>
       {notice && (
         <div className="kp-toast" role="status">
           <Check size={18} />
@@ -1480,9 +1509,12 @@ export default function Portal({
         </div>
       )}
     </div>
+    </LocaleContext.Provider>
   );
 }
 function LoginCard({ returnTo,googleEnabled=false }: { returnTo: string;googleEnabled?:boolean }) {
+  const language = useLanguage();
+  const tr = (text: string) => translate(text, language);
   const router = useRouter();
   const [next,setNext]=useState(returnTo),[authError,setAuthError]=useState(""),[mode,setMode]=useState<"signin"|"signup">("signin"),[busy,setBusy]=useState(false);
   // Read redirect and OAuth error parameters from the browser after hydration.
@@ -1508,18 +1540,17 @@ function LoginCard({ returnTo,googleEnabled=false }: { returnTo: string;googleEn
       <span className="kp-login-icon">
         <ShieldCheck size={34} />
       </span>
-      <h1>KiGo’ga xush kelibsiz</h1>
+      <h1>{tr("KiGo’ga xush kelibsiz")}</h1>
       <p>
-        Turnirlarga yoziling, jamoangizni boshqaring va sport hamjamiyatiga
-        qo‘shiling.
+        {tr("Turnirlarga yoziling, jamoangizni boshqaring va sport hamjamiyatiga qo‘shiling.")}
       </p>
       {authError&&<p className="kp-alert error" role="alert">{authError}</p>}
       <form className="kp-auth-form" onSubmit={submit}>
-        {mode === "signup" && <label>Ismingiz<input name="name" type="text" autoComplete="name" maxLength={80} /></label>}
-        <label>Gmail yoki email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
-        <label>KiGo paroli<input name="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} maxLength={128} /></label>
-        <small>Bu KiGo hisobingiz paroli. Google/Gmail parolingizni bu yerga kiritmang.</small>
-        <button className="kp-btn" type="submit" disabled={busy}>{busy ? "Kuting…" : mode === "signup" ? "Hisob yaratish" : "Email bilan kirish"}</button>
+        {mode === "signup" && <label>{tr("Ismingiz")}<input name="name" type="text" autoComplete="name" maxLength={80} /></label>}
+        <label>{tr("Gmail yoki email")}<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
+        <label>{tr("KiGo paroli")}<input name="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} maxLength={128} /></label>
+        <small>{tr("Bu KiGo hisobingiz paroli. Google/Gmail parolingizni bu yerga kiritmang.")}</small>
+        <button className="kp-btn" type="submit" disabled={busy}>{busy ? tr("Kuting…") : mode === "signup" ? tr("Hisob yaratish") : tr("Email bilan kirish")}</button>
       </form>
       <button className="kp-auth-toggle" type="button" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setAuthError(""); }}>{mode === "signin" ? "Hisobingiz yo‘qmi? Ro‘yxatdan o‘ting" : "Hisobingiz bormi? Kirish"}</button>
       {googleEnabled?<Link target="_top" href={"/auth/google/start?return_to="+encodeURIComponent(next)} className="kp-btn kp-google-button"><GoogleMark/>Google orqali kirish</Link>:<><button className="kp-btn kp-google-button" disabled><GoogleMark/>Google orqali kirish</button><small>Google orqali kirish hozircha mavjud emas.</small></>}
@@ -1591,6 +1622,8 @@ function Directory({ data }: { data: E[] }) {
   );
 }
 function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
+  const language = useLanguage();
+  const tr = (text: string) => translate(text, language);
   const [q, setQ] = useState(""),
     [sport, setSport] = useState("Hammasi"),
     [status, setStatus] = useState("ochiq"),
@@ -1640,7 +1673,7 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
             className={status === key ? "active" : ""}
             onClick={() => setStatus(key)}
           >
-            {name}
+            {tr(name)}
             <span>
               {
                 tournaments.filter((t) => key === "all" || t.status === key)
@@ -1653,37 +1686,37 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
       <div className="kp-filter-bar">
         <Search size={19} />
         <input
-          aria-label="Turnir qidirish"
-          placeholder="Turnir qidirish…"
+          aria-label={tr("Turnir qidirish")}
+          placeholder={tr("Turnir qidirish…")}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <select
-          aria-label="Shahar"
+          aria-label={tr("Shahar")}
           value={city}
           onChange={(e) => setCity(e.target.value)}
         >
           {["Hammasi", ...new Set(tournaments.map((t) => t.city))].map((x) => (
-            <option key={x}>{x}</option>
+            <option key={x}>{tr(x)}</option>
           ))}
         </select>
         <select
-          aria-label="Ishtirok narxi"
+          aria-label={tr("Ishtirok narxi")}
           value={pay}
           onChange={(e) => setPay(e.target.value)}
         >
-          <option>Hammasi</option>
-          <option value="free">Bepul</option>
-          <option value="paid">Pullik</option>
+          <option>{tr("Hammasi")}</option>
+          <option value="free">{tr("Bepul")}</option>
+          <option value="paid">{tr("Pullik")}</option>
         </select>
         <select
-          aria-label="Saralash"
+          aria-label={tr("Saralash")}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
-          <option value="date">Sana bo‘yicha</option>
-          <option value="popular">Ommabop</option>
-          <option value="price">Narx bo‘yicha</option>
+          <option value="date">{tr("Sana bo‘yicha")}</option>
+          <option value="popular">{tr("Ommabop")}</option>
+          <option value="price">{tr("Narx bo‘yicha")}</option>
         </select>
       </div>
       <div className="kp-chips">
@@ -1702,7 +1735,7 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
             className={sport === x ? "active" : ""}
             onClick={() => setSport(x)}
           >
-            {x}
+            {tr(x)}
           </button>
         ))}
       </div>
@@ -1718,7 +1751,7 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
             setStatus("all");
           }}
         >
-          Filtrlarni tozalash
+          {tr("Filtrlarni tozalash")}
         </button>
       </div>
       {items.length ? (
