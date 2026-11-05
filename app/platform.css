@@ -2472,9 +2472,22 @@ body {
   }
   .kp-header-actions {
     gap: 3px;
+    min-width: 0;
+  }
+  .kp-header-in {
+    gap: 6px;
+  }
+  .kp-logo {
+    gap: 6px;
+  }
+  .kp-header-actions > .kp-profile-link {
+    display: none;
+  }
+  .kp-language-label > span {
+    display: none;
   }
   .kp-language-select {
-    max-width: 88px;
+    max-width: 68px;
     min-height: 34px;
     padding-inline: 5px 18px;
     font-size: 10px;

@@ -37,6 +37,7 @@ import EntityEditor, {
   type E,
 } from "./entity-editor";
 import { Avatar, statusName, MatchForm } from "./portal";
+import { currentLocale, languageDirection, languageList, translateDom, type Language } from "@/lib/i18n";
 const sections: [string, string, typeof LayoutDashboard][] = [
   ["backups", "Zaxira va tiklash", ShieldCheck],
   ["overview", "Umumiy ko‘rinish", LayoutDashboard],
@@ -65,7 +66,9 @@ const editable = [
   "sponsor",
 ];
 export default function AdminPanel() {
-  const [kind, setKind] = useState("overview"),
+  const [language, setLanguage] = useState<Language>("uz"),
+    [languageReady, setLanguageReady] = useState(false),
+    [kind, setKind] = useState("overview"),
     [bootstrap, setBootstrap] = useState<E | null>(null),
     [data, setData] = useState<E | null>(null),
     [overview, setOverview] = useState<E | null>(null),
@@ -116,6 +119,30 @@ export default function AdminPanel() {
       setLoading(false);
     }
   }, [kind, page, q, archived]);
+  useEffect(() => {
+    const saved = window.localStorage.getItem("kigo-language") as Language | null;
+    if (saved && languageList.some(([code]) => code === saved)) setLanguage(saved);
+    setLanguageReady(true);
+  }, []);
+  useEffect(() => {
+    if (!languageReady) return;
+    document.documentElement.lang = language;
+    document.documentElement.dir = languageDirection(language);
+    window.localStorage.setItem("kigo-language", language);
+    const root = document.querySelector(".ka-app");
+    if (!root) return;
+    translateDom(root, language);
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === "characterData" && record.target.parentNode) translateDom(record.target.parentNode, language);
+        for (const node of Array.from(record.addedNodes)) translateDom(node as ParentNode, language);
+        if (record.type === "attributes") translateDom(record.target as ParentNode, language);
+      }
+    });
+    observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "aria-label", "title", "alt"] });
+    return () => observer.disconnect();
+  }, [language, languageReady]);
+
   useEffect(() => {
     const timer = setTimeout(() => load(), 200);
     return () => clearTimeout(timer);
@@ -217,7 +244,7 @@ export default function AdminPanel() {
     }
   }
   return (
-    <div className="ka-app">
+    <div className="ka-app" lang={language} dir={languageDirection(language)}>
       <aside className={"ka-sidebar " + (mobile ? "open" : "")}>
         <Link className="kp-logo" href="/admin">
           <img
@@ -282,6 +309,11 @@ export default function AdminPanel() {
             <strong>{title}</strong>
           </div>
           <div>
+            <label className="kp-language-label">
+              <select className="kp-language-select" value={language} aria-label="Tilni tanlang" onChange={(event) => setLanguage(event.target.value as Language)}>
+                {languageList.map(([code, nativeName]) => <option key={code} value={code}>{nativeName}</option>)}
+              </select>
+            </label>
             <button
               className="kp-icon-btn"
               aria-label="Yangilash"
@@ -445,7 +477,7 @@ export default function AdminPanel() {
                         <p>{r.after?.name || r.after?.title || r.entityId}</p>
                       </div>
                       <small>
-                        {new Date(r.createdAt).toLocaleString("uz-UZ")}
+                        {new Date(r.createdAt).toLocaleString(currentLocale())}
                       </small>
                     </div>
                   ))
@@ -787,7 +819,7 @@ export default function AdminPanel() {
                             <td>
                               <small>
                                 {new Date(r.createdAt).toLocaleDateString(
-                                  "uz-UZ",
+                                  currentLocale(),
                                 )}
                               </small>
                             </td>

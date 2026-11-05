@@ -24,11 +24,11 @@ import {
   LayoutDashboard,
 } from "./icons";
 import EntityEditor, { requestApi, ImagePicker, type E } from "./entity-editor";
-import { languageDirection, languageList, translate, type Language } from "@/lib/i18n";
+import { currentLocale, languageDirection, languageList, translate, translateDom, type Language } from "@/lib/i18n";
 const LocaleContext = createContext<Language>("uz");
 const useLanguage = () => useContext(LocaleContext);
 export const money = (n: number) =>
-  n ? new Intl.NumberFormat("uz-UZ").format(n) + " so‘m" : "Bepul";
+  n ? new Intl.NumberFormat(currentLocale()).format(n) + " so‘m" : "Bepul";
 export const statusName = (s: string) =>
   ({
     draft: "Qoralama",
@@ -260,6 +260,33 @@ export default function Portal({
     document.documentElement.dir = languageDirection(language);
     window.localStorage.setItem("kigo-language", language);
   }, [language, languageReady]);
+  useEffect(() => {
+    if (!languageReady) return;
+    const root = document.querySelector(".kp-app");
+    if (!root) return;
+    translateDom(root, language);
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === "characterData" && record.target.parentNode) {
+          translateDom(record.target.parentNode, language);
+        }
+        for (const node of Array.from(record.addedNodes)) {
+          translateDom(node as ParentNode, language);
+        }
+        if (record.type === "attributes") {
+          translateDom(record.target as ParentNode, language);
+        }
+      }
+    });
+    observer.observe(root, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["placeholder", "aria-label", "title", "alt"],
+    });
+    return () => observer.disconnect();
+  }, [language, languageReady, loading, d, error, notice, menu, search, editor]);
   const mounted = useRef(true);
   const reload = useCallback(async () => {
     const r = await fetch("/api/kigo?action=bootstrap", { cache: "no-store" });
@@ -380,13 +407,13 @@ export default function Portal({
       {menu && (
         <nav className="kp-mobile-nav">
           {nav.map(([href, label]) => (
-            <Link href={href} key={href}>
+            <Link href={href} key={href} onClick={() => setMenu(false)}>
               {translate(label, language)}
             </Link>
           ))}
-          <Link href="/turnir-yaratish">{label("Turnir yaratish")}</Link>
-          <Link href="/profil">{label("Shaxsiy kabinet")}</Link>
-          {user?.role === "admin" && <Link href="/admin">Admin panel</Link>}
+          <Link href="/turnir-yaratish" onClick={() => setMenu(false)}>{label("Turnir yaratish")}</Link>
+          <Link href="/profil" onClick={() => setMenu(false)}>{label("Shaxsiy kabinet")}</Link>
+          {user?.role === "admin" && <Link href="/admin" onClick={() => setMenu(false)}>Admin panel</Link>}
         </nav>
       )}
     </header>
@@ -620,7 +647,7 @@ export default function Portal({
               ].map(([key, label]) => (
                 <div key={key}>
                   <strong>
-                    {new Intl.NumberFormat("uz-UZ").format(d.stats[key] || 0)}
+                    {new Intl.NumberFormat(currentLocale()).format(d.stats[key] || 0)}
                   </strong>
                   <span>{label}</span>
                 </div>
@@ -2070,7 +2097,7 @@ export function Inbox({
                 {m.outgoing ? "Yuborilgan xabar" : m.senderName || "KiGo"}
               </strong>
               <small>
-                {new Date(m.createdAt).toLocaleString("uz-UZ")} ·{" "}
+                {new Date(m.createdAt).toLocaleString(currentLocale())} ·{" "}
                 {statusName(m.status)}
               </small>
             </div>
@@ -2797,7 +2824,7 @@ function Match({ m }: { m: E }) {
               ? "Yakunlangan"
               : "Rejada"}
           {m.scheduledAt
-            ? " · " + new Date(m.scheduledAt).toLocaleString("uz-UZ")
+            ? " · " + new Date(m.scheduledAt).toLocaleString(currentLocale())
             : ""}
         </span>
       </div>
