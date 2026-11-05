@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "i18n:extract": "node scripts/i18n-catalog.mjs extract",
+    "i18n:merge": "node scripts/i18n-catalog.mjs merge",
     "install:ci": "node scripts/install-ci.mjs",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/build.mjs",

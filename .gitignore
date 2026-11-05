@@ -41,6 +41,7 @@ yarn-error.log*
 /.codex/
 /outputs/
 /work/
+/locales/*-to-translate.csv
 
 # OS metadata
 .DS_Store

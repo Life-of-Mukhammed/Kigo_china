@@ -105,3 +105,16 @@ npm run build
 Telefonlar uchun pastki navigatsiya, safe-area, moslashuvchan formalar, pastdan ochiladigan modal va o‘qilishi yaxshilangan kartalar qo‘shildi. Chrome 402 px emulyatorda profil formasi tekshirildi; haqiqiy qurilma sinovi alohida kerak.
 
 [Zaxira va tiklash tartibi](BACKUP_RECOVERY.md): MongoDB + R2, avtomatik va qo‘lda nusxa, yuklash, faqat egaga ruxsatli tiklash. Auth testlari haqiqiy imzolangan JWT va mock provider tarmog‘i bilan ishlaydi; real Google OAuth hisobi bilan yakuniy test uchun kalitlar zarur.
+
+# Preparing interface translations
+
+Tarjimalar ilovaning lokal lug‘atida saqlanadi. Saytga kiruvchilarga Google Translate, API kaliti yoki Google bilan tarmoq aloqasi kerak bo‘lmaydi.
+
+Google Sheets’dagi `GOOGLETRANSLATE` funksiyasi yordamida til tarjimasini tayyorlash:
+
+1. Ishga tushiring: `npm run i18n:extract -- ru` (`ru` o‘rniga qo‘llanadigan til kodini yozish mumkin). `locales/ru-to-translate.csv` faylida tarjima qilinadigan matnlar chiqadi.
+2. CSV faylni Google Sheets’ga import qiling. Birinchi tarjima katagiga `=GOOGLETRANSLATE(B2;"uz";"ru")` yozib, ustun bo‘ylab pastga to‘ldiring (Sheets boshqa hududiy sozlamada bo‘lsa, nuqtali vergul o‘rniga vergul ishlating). Tarjimalarni, ayniqsa sport atamalari va `{placeholder}` o‘zgaruvchilari bor gaplarni tekshiring.
+3. Jadvalni CSV qilib yuklab oling; `id`, `source`, `target` ustun nomlarini saqlang.
+4. Ishga tushiring: `npm run i18n:merge -- ru locales/ru-translated.csv`. Tekshirilgan tarjimalar `lib/i18n-generated.ts` fayliga saqlanib, umumiy lug‘at orqali barcha sahifalarda ishlaydi.
+
+Birlashtirish buyrug‘i tarjimasi bo‘sh qatorlarni va mos kelmaydigan o‘zgaruvchilarni qabul qilmaydi. Asosiy lug‘at saqlanadi, yangi matnlar qo‘shilganda jarayonni takrorlash mumkin. Google tarjimalari avtomatik qoralama bo‘lgani uchun e’lon qilishdan oldin ko‘rib chiqish kerak.

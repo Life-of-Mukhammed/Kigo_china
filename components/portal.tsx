@@ -1767,7 +1767,7 @@ function TournamentCatalog({ tournaments }: { tournaments: E[] }) {
         ))}
       </div>
       <div className="kp-section-title">
-        <p className="kp-muted">{items.length} ta turnir topildi</p>
+        <p className="kp-muted">{language === "ru" ? `Найдено турниров: ${items.length}` : `${items.length} ta turnir topildi`}</p>
         <button
           className="kp-link"
           onClick={() => {
@@ -2204,7 +2204,9 @@ function Reviews({
             >
               {[5, 4, 3, 2, 1].map((n) => (
                 <option key={n} value={n}>
-                  {n} yulduz
+                  {language === "ru"
+                    ? `${n} ${n === 1 ? "звезда" : n >= 2 && n <= 4 ? "звезды" : "звёзд"}`
+                    : `${n} yulduz`}
                 </option>
               ))}
             </select>

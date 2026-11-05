@@ -121,6 +121,7 @@ export default function AdminPanel() {
   }, [kind, page, q, archived]);
   useEffect(() => {
     const saved = window.localStorage.getItem("kigo-language") as Language | null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the user's saved locale after hydration to avoid a server/client mismatch.
     if (saved && languageList.some(([code]) => code === saved)) setLanguage(saved);
     setLanguageReady(true);
   }, []);
@@ -568,18 +569,15 @@ export default function AdminPanel() {
               </div>
               {selected.length > 0 && (
                 <div className="ka-bulk">
-                  <strong>{selected.length} ta tanlandi</strong>
+                  <strong>{language === "ru" ? `Выбрано: ${selected.length}` : `${selected.length} ta tanlandi`}</strong>
                   <button
                     className="kp-link"
                     disabled={busy}
                     onClick={async () => {
                       if (
-                        !confirm(
-                          selected.length +
-                            " ta yozuvni " +
-                            (archived ? "tiklash" : "arxivlash") +
-                            "ni tasdiqlaysizmi?",
-                        )
+                        !confirm(language === "ru"
+                          ? `${selected.length} записей ${archived ? "восстановить" : "архивировать"}?`
+                          : selected.length + " ta yozuvni " + (archived ? "tiklash" : "arxivlash") + "ni tasdiqlaysizmi?")
                       )
                         return;
                       setBusy(true);
@@ -745,17 +743,14 @@ export default function AdminPanel() {
                               ) : kind === "ad" ? (
                                 <>
                                   <span>
-                                    {overview?.adStats
-                                      .filter(
-                                        (a: E) =>
-                                          a.target === r.id &&
-                                          a.event === "view",
-                                      )
-                                      .reduce(
-                                        (n: number, a: E) => n + a.n,
-                                        0,
-                                      ) || 0}{" "}
-                                    ko‘rish
+                                    {(() => {
+                                      const views = overview?.adStats
+                                        .filter((a: E) => a.target === r.id && a.event === "view")
+                                        .reduce((n: number, a: E) => n + a.n, 0) || 0;
+                                      return language === "ru"
+                                        ? `${views} ${views % 10 === 1 && views % 100 !== 11 ? "просмотр" : views % 10 >= 2 && views % 10 <= 4 && (views % 100 < 12 || views % 100 > 14) ? "просмотра" : "просмотров"}`
+                                        : `${views} ko‘rish`;
+                                    })()}
                                   </span>
                                   <small className="ka-cell-small">
                                     {overview?.adStats
@@ -1071,8 +1066,9 @@ export default function AdminPanel() {
               )}
               <div className="ka-pagination">
                 <span>
-                  Jami {data?.total || 0} ta yozuv · {page}/{data?.pages || 1}{" "}
-                  sahifa
+                  {language === "ru"
+                    ? `Всего записей: ${data?.total || 0} · Страница ${page}/${data?.pages || 1}`
+                    : <>Jami {data?.total || 0} ta yozuv · {page}/{data?.pages || 1} sahifa</>}
                 </span>
                 <div>
                   <button

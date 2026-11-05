@@ -1,3 +1,5 @@
+import { generatedTranslations } from "./i18n-generated";
+
 export const languageList = [
   ["uz", "O‘zbekcha", "ltr"],
   ["kk", "Қазақша", "ltr"],
@@ -307,7 +309,7 @@ const extendedRussian: Record<string, string> = {
   "Davom etish": "Продолжить",
   "Yaratish": "Создать",
   "Yangilash": "Обновить",
-  "Faol": "Активный",
+  "Faol": "Активен",
   "Tasdiq kutilmoqda": "Ожидает подтверждения",
   "Tasdiqlandi": "Подтверждено",
   "Rad etildi": "Отклонено",
@@ -482,6 +484,9 @@ const extendedRussian: Record<string, string> = {
 };
 for (const [source, target] of Object.entries(extendedRussian)) {
   translations[source] = { ...translations[source], ru: target };
+}
+for (const [source, values] of Object.entries(generatedTranslations)) {
+  translations[source] = { ...translations[source], ...(values as Partial<Record<Language, string>>) };
 }
 
 export function translate(text: string, language: Language): string {
